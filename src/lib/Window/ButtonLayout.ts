@@ -1,0 +1,6 @@
+export enum ButtonLayout {
+	EVENLY_SPACED,
+	LEFT_TO_RIGHT,
+	RIGHT_TO_LEFT,
+	SPACE_BETWEEN
+}

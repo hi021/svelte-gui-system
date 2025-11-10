@@ -1,0 +1,87 @@
+:root {
+	--rem: 16px;
+	font-size: var(--rem);
+
+	--color-darkest: oklch(17% 0 0);
+	--color-darker: oklch(27% 0 0);
+	--color-dark: oklch(37% 0 0);
+	--color-darkish: oklch(47% 0 0);
+
+	--color-lightest: oklch(95% 0 0);
+	--color-lighter: oklch(88% 0 0);
+	--color-light: oklch(81% 0 0);
+
+	--color-active: oklch(80% 0.1 300);
+	--color-pink: oklch(60% 0.17 355);
+	--color-purple: oklch(36% 0.17 300);
+	--color-claret: oklch(42% 0.17 355);
+	--color-red: oklch(57% 0.17 25);
+	--color-green: oklch(55% 0.17 150);
+	--color-blue: oklch(55% 0.17 255);
+	--color-yellow: oklch(80% 0.17 70);
+
+	color-scheme: dark;
+	font-family: "Noto Sans", system-ui, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+html,
+body {
+	min-height: 100svh;
+}
+body {
+	/* flex so we can use flex-fill on the container div in app.html ? */
+	/* display: flex; */
+	margin: 0;
+	background-color: var(--color-darker);
+	color: var(--color-lighter);
+}
+
+.display-window-container:focus {
+	outline: 2px solid var(--color-active);
+}
+.display-window-container {
+	position: fixed;
+	width: var(--w);
+
+	display: flex;
+	flex-direction: column;
+
+	border-radius: var(--border-radius);
+	background-color: var(--color-darkish);
+	overflow: hidden;
+	z-index: var(--z-index);
+}
+.display-window-titlebar {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 6px;
+	background-color: var(--color-dark);
+}
+.display-window-title {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.display-window-titlebar-btn-container {
+	display: flex;
+	flex-wrap: nowrap;
+}
+.display-window-content-wrapper {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	padding: var(--padding);
+}
+.display-window-content {
+	flex: 1 1 auto;
+}
+
+.unselectable {
+	user-drag: none;
+	-webkit-user-drag: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+}

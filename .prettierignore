@@ -1,0 +1,11 @@
+.DS_Store
+node_modules
+build
+.svelte-kit
+.vscode
+vite.config.*.timestamp-*
+src-tauri/gen
+src-tauri/icons
+src-tauri/target
+pnpm-lock.yaml
+package.json

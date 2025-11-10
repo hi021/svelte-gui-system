@@ -1,0 +1,11 @@
+.DS_Store
+node_modules
+build
+.svelte-kit
+.vscode
+package
+.env
+.env.*
+!.env.example
+vite.config.*.timestamp-*
+src-tauri/target
