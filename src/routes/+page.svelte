@@ -2,19 +2,22 @@
 	import DisplayWindow from "$lib/Window/DisplayWindow.svelte";
 	import { content } from "$lib/Window/NotificationPopupContent.svelte";
 	import { DisplayWindow as DWindow } from "$lib/Window/DisplayWindow";
-	import { WindowManagerService } from "$lib/WindowManagerService";
+	import { WindowService } from "$lib/WindowManagerService";
 	import { WindowButton } from "$lib/Window/WindowButton";
 	import { AnchorPoint } from "$lib/Window/AnchorPoint";
 	import { GameState } from "$lib/GameState.svelte";
 	import { onDestroy } from "svelte";
 	import { Vec2 } from "$lib/Vec2";
+	import { PredicateMode } from "$lib/PredicateMode";
+
+	let finderInputText: string;
 
 	const v1 = new Vec2(300, 300);
 	const v2 = new Vec2(300, 300);
 	const button = new WindowButton();
 	button.text = "OK";
 	const gameState = new GameState();
-	const windowManager = new WindowManagerService();
+	const windowManager = new WindowService();
 
 	const handleDrag = (e: MouseEvent) => windowManager.handleDrag(e);
 	const handleDragEnd = (e: MouseEvent) => windowManager.handleDragEnd(e);
@@ -96,6 +99,7 @@
 				customContainerStyle: "background-color: #aa3355;",
 				size: v2,
 				alwaysOnTop: true,
+				backdropVisible: true,
 				content: content,
 				props: { text: "New dupa" },
 				buttons: [button]
@@ -113,9 +117,17 @@
 			console.log("zIndex 4:", windowManager.getWindowByZIndex(4));
 			console.log("id 1:", windowManager.getWindowById(1));
 			console.log(
-				"ALL Predicates:",
-				windowManager.getWindowsByPredicates({ alwaysOnTop: true, draggable: true, minimized: false })
+				"ANY Predicates:",
+				windowManager.getWindowsByPredicates(
+					{ alwaysOnTop: true, draggable: true, minimized: false },
+					PredicateMode.ANY
+				)
 			);
 		}}>Finder test</button>
 	<button style="z-index: 90; display: block;" onclick={() => ++gameState.money}>Add moner</button>
+	<form style="z-index: 90;">
+		<input type="text" bind:value={finderInputText} />
+		<button type="submit" onclick={() => console.log(windowManager.getWindowsByPredicates(JSON.parse(finderInputText)))}
+			>Find ALL</button>
+	</form>
 </main>

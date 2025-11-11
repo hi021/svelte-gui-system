@@ -4,7 +4,7 @@ import { AnchorPoint } from "./AnchorPoint";
 import { WindowLayout } from "./WindowLayout";
 import { WindowButton } from "./WindowButton";
 import { PredicateMode } from "$lib/PredicateMode";
-import { WindowManagerService } from "$lib/WindowManagerService";
+import { WindowService } from "$lib/WindowManagerService";
 
 export class DisplayWindow {
 	public title = "";
@@ -19,12 +19,13 @@ export class DisplayWindow {
 	public focused = true;
 	public minimized = false;
 	public maximized = false;
+	public backdropVisible = false;
 	public customContainerStyle = "";
 	public props?: Record<string, any>;
 	#id = 0;
 	#size = new Vec2(600, 400);
 	#anchor = new Vec2(1, 1); // x = 1 -> left, x = -1 -> right; y = 1 -> top, y = -1 -> bottom (see getAnchorEnum())
-	#zIndex = WindowManagerService.DEFAULT_Z_INDEX;
+	#zIndex = WindowService.DEFAULT_Z_INDEX;
 	#buttons: WindowButton[] = [];
 	#content: Snippet<[Record<string, any> | undefined]>;
 	#parent?: DisplayWindow;
@@ -100,8 +101,7 @@ export class DisplayWindow {
 		if (this.#parent == dWindow) return;
 		if (this.#children.includes(dWindow))
 			return console.warn(`Attempted to set existing child as parent for ${this.toString()}`);
-		if (!WindowManagerService.windowExists(dWindow))
-			return console.warn(`Attempted to set parent for ${this.toString()}`);
+		if (!WindowService.windowExists(dWindow)) return console.warn(`Attempted to set parent for ${this.toString()}`);
 
 		dWindow.children.push(this);
 		this.#parent = dWindow;
@@ -116,7 +116,7 @@ export class DisplayWindow {
 		return this.#children;
 	}
 	public addChild(dWindow: DisplayWindow) {
-		if (!WindowManagerService.windowExists(dWindow)) return console.warn();
+		if (!WindowService.windowExists(dWindow)) return console.warn();
 	}
 	public addChildren(dWindows: DisplayWindow[]) {
 		for (const dWindow of dWindows) this.addChild(dWindow);

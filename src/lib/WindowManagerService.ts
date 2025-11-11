@@ -20,6 +20,7 @@ type CreateWindowParams = {
 	focused?: boolean;
 	minimized?: boolean;
 	maximized?: boolean;
+	backdropVisible?: boolean;
 	customContainerStyle?: string;
 	props?: Record<string, any>;
 	parent?: DisplayWindow;
@@ -30,10 +31,10 @@ type CreateWindowParams = {
 	content: Snippet<[Record<string, any> | undefined]>;
 };
 
-export class WindowManagerService {
+export class WindowService {
 	static readonly MAX_WINDOWS = 99;
 	static readonly DEFAULT_Z_INDEX = 3;
-	static readonly TOP_Z_INDEX = WindowManagerService.DEFAULT_Z_INDEX + WindowManagerService.MAX_WINDOWS + 3;
+	static readonly TOP_Z_INDEX = WindowService.DEFAULT_Z_INDEX + WindowService.MAX_WINDOWS + 3;
 
 	#windows = new Map<number, DisplayWindow>();
 	#windowsStore = writable<DisplayWindow[]>([]);
@@ -53,15 +54,11 @@ export class WindowManagerService {
 	}
 
 	private get topZIndex() {
-		return this.#windowsByZIndex.size
-			? Math.max(...this.#windowsByZIndex.keys())
-			: WindowManagerService.DEFAULT_Z_INDEX;
+		return this.#windowsByZIndex.size ? Math.max(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
 	}
 
 	private get bottomZIndex() {
-		return this.#windowsByZIndex.size
-			? Math.min(...this.#windowsByZIndex.keys())
-			: WindowManagerService.DEFAULT_Z_INDEX;
+		return this.#windowsByZIndex.size ? Math.min(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
 	}
 
 	public getWindowById(id: number) {
@@ -194,6 +191,7 @@ export class WindowManagerService {
 		if (options.focused != null) dWindow.focused = options.focused;
 		if (options.minimized != null) dWindow.minimized = options.minimized;
 		if (options.maximized != null) dWindow.maximized = options.maximized;
+		if (options.backdropVisible != null) dWindow.backdropVisible = options.backdropVisible;
 		if (options.customContainerStyle) dWindow.customContainerStyle = options.customContainerStyle;
 		if (options.props) dWindow.props = options.props;
 		if (options.size) dWindow.size = options.size;
@@ -206,7 +204,7 @@ export class WindowManagerService {
 	}
 
 	private registerWindow(dWindow: DisplayWindow) {
-		if (this.#windows.size >= WindowManagerService.MAX_WINDOWS)
+		if (this.#windows.size >= WindowService.MAX_WINDOWS)
 			throw new Error("Failed to register window: DisplayWindow array overflow - please destroy existing windows");
 
 		if (dWindow.focused) this.focusWindow(dWindow);
@@ -239,7 +237,7 @@ export class WindowManagerService {
 		// }
 		// }
 
-		const zIndex = dWindow.alwaysOnTop ? WindowManagerService.TOP_Z_INDEX + 1 : this.topZIndex + 1;
+		const zIndex = dWindow.alwaysOnTop ? WindowService.TOP_Z_INDEX + 1 : this.topZIndex + 1;
 		dWindow.zIndex = zIndex;
 		this.#windowsByZIndex.set(zIndex, dWindow.id);
 	}

@@ -37,6 +37,12 @@ body {
 	color: var(--color-lighter);
 }
 
+.display-window-backdrop {
+	position: fixed;
+	inset: 0;
+	background-color: color-mix(in srgb, var(--color-dark) 60%, transparent);
+	z-index: var(--z-index);
+}
 .display-window-container:focus {
 	outline: 2px solid var(--color-active);
 }

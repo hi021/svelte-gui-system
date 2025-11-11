@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { DisplayWindow } from "./DisplayWindow";
-	import { KeybindService } from "$lib/KeybindService";
-	import { scale, slide } from "svelte/transition";
+	import { KeybindService } from "$lib/Keybind/KeybindService";
+	import { fade, scale, slide } from "svelte/transition";
 	import { onDestroy, onMount } from "svelte";
+	import { KeyAction } from "$lib/Keybind/KeyActionEnum";
 
 	let {
 		dWindow,
@@ -26,8 +27,24 @@
 
 	const preventFocus = (e: DragEvent) => e.preventDefault();
 	const handleKeyUp = (e: KeyboardEvent) => {
-		if (e.key == KeybindService.KEYMAP.WINDOW_CLOSE) {
-			return onclose(e);
+		const keyAction = KeybindService.getEventKeyAction(e);
+		switch (keyAction) {
+			case KeyAction.WINDOW_CLOSE:
+				return onclose(e);
+			case KeyAction.WINDOW_MINIMIZE:
+				return onminimize(e);
+			case KeyAction.WINDOW_MAXIMIZE:
+				return onmaximize(e);
+		}
+	};
+	// TODO resize
+	const handleKeyDown = (e: KeyboardEvent) => {
+		const keyAction = KeybindService.getEventKeyAction(e);
+		switch (
+			keyAction
+			// case KeyAction.WINDOW_RESIZE_MOD:
+			// 	return onclose(e);
+		) {
 		}
 	};
 
@@ -41,10 +58,18 @@
 	});
 </script>
 
+{#if dWindow.backdropVisible}
+	<div
+		class="display-window-backdrop unselectable"
+		data-window-class={dWindow.windowClass}
+		style="--z-index: {dWindow.zIndex}"
+		transition:fade={{ duration: 120 }}>
+	</div>
+{/if}
 <div
-	class="display-window-container unselectable"
 	transition:scale={{ duration: 150 }}
 	bind:this={dWindowElement}
+	class="display-window-container unselectable"
 	data-window-class={dWindow.windowClass}
 	draggable="false"
 	style={dWindow.css}
