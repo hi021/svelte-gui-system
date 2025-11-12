@@ -11,14 +11,16 @@
 		onminimize,
 		onmaximize,
 		onfocus,
-		ondragstart
+		onmovestart,
+		onresizestart
 	}: {
 		dWindow: DisplayWindow;
 		onclose: (e: Event) => boolean | void;
 		onminimize: (e: Event) => boolean | void;
 		onmaximize: (e: Event) => boolean | void;
 		onfocus: (e: FocusEvent) => void;
-		ondragstart: (e: MouseEvent) => void;
+		onmovestart: (e: MouseEvent) => void;
+		onresizestart: (e: MouseEvent) => void;
 	} = $props();
 	if (!dWindow) throw new Error("Failed to render DisplayWindow - no valid prop passed");
 
@@ -35,26 +37,27 @@
 				return onminimize(e);
 			case KeyAction.WINDOW_MAXIMIZE:
 				return onmaximize(e);
+			case KeyAction.WINDOW_RESIZE_MOD:
+				return dWindow.setEditMode();
 		}
 	};
-	// TODO resize
 	const handleKeyDown = (e: KeyboardEvent) => {
 		const keyAction = KeybindService.getEventKeyAction(e);
-		switch (
-			keyAction
-			// case KeyAction.WINDOW_RESIZE_MOD:
-			// 	return onclose(e);
-		) {
+		switch (keyAction) {
+			case KeyAction.WINDOW_RESIZE_MOD:
+				return dWindow.setEditMode("resizing");
 		}
 	};
 
 	onMount(() => {
 		dWindowElement.addEventListener("dragstart", preventFocus);
 		dWindowElement.addEventListener("keyup", handleKeyUp);
+		dWindowElement.addEventListener("keydown", handleKeyDown);
 	});
 	onDestroy(() => {
 		dWindowElement.removeEventListener("dragstart", preventFocus);
 		dWindowElement.removeEventListener("keyup", handleKeyUp);
+		dWindowElement.removeEventListener("keydown", handleKeyDown);
 	});
 </script>
 
@@ -74,12 +77,21 @@
 	draggable="false"
 	style={dWindow.css}
 	tabindex="0"
-	onmousedown={onfocus}
+	onmousedown={(e) => {
+		onfocus(e);
+		onresizestart(e);
+	}}
 	{onfocus}
 	role="dialog">
 	{#if dWindow.layout.shouldRenderTitleBar()}
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-		<div class="display-window-titlebar" onmousedown={ondragstart} role="contentinfo">
+		<div
+			class="display-window-titlebar"
+			onmousedown={(e) => {
+				dWindow.setEditMode("moving");
+				onmovestart(e);
+			}}
+			role="contentinfo">
 			<span class="display-window-title">{dWindow.title}</span>
 			{#if dWindow.layout.shouldRenderTitleBarButtonContainer()}
 				<span class="display-window-titlebar-btn-container">

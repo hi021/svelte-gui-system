@@ -4,7 +4,9 @@ import { AnchorPoint } from "./AnchorPoint";
 import { WindowLayout } from "./WindowLayout";
 import { WindowButton } from "./WindowButton";
 import { PredicateMode } from "$lib/PredicateMode";
-import { WindowService } from "$lib/WindowManagerService";
+import { WindowService } from "$lib/Window/WindowService";
+
+export type WindowEditingMode = "moving" | "resizing" | null;
 
 export class DisplayWindow {
 	public title = "";
@@ -20,6 +22,7 @@ export class DisplayWindow {
 	public minimized = false;
 	public maximized = false;
 	public backdropVisible = false;
+	public editing: WindowEditingMode = null;
 	public customContainerStyle = "";
 	public props?: Record<string, any>;
 	#id = 0;
@@ -134,6 +137,12 @@ export class DisplayWindow {
 	}
 	private removeChildOnly(dWindow: DisplayWindow) {
 		this.#children = this.#children.filter((child) => child != dWindow);
+	}
+
+	public setEditMode(mode: WindowEditingMode = null) {
+		if (mode == "moving" && !this.draggable) return;
+		if (mode == "resizing" && !this.resizeable) return;
+		this.editing = mode;
 	}
 
 	public close() {

@@ -1,11 +1,17 @@
 import type { Snippet } from "svelte";
-import type { WindowLayout } from "./Window/WindowLayout";
-import type { WindowButton } from "./Window/WindowButton";
-import { Vec2 } from "./Vec2";
+import type { WindowLayout } from "./WindowLayout";
+import type { WindowButton } from "./WindowButton";
+import { Vec2 } from "../Vec2";
 import { writable } from "svelte/store";
-import { AnchorPoint } from "./Window/AnchorPoint";
-import { PredicateMode } from "./PredicateMode";
-import { DisplayWindow } from "./Window/DisplayWindow";
+import { AnchorPoint } from "./AnchorPoint";
+import { PredicateMode } from "../PredicateMode";
+import { DisplayWindow, type WindowEditingMode } from "./DisplayWindow";
+
+type EditingWindow = {
+	dWindow: DisplayWindow;
+	offset: Vec2;
+	mode: WindowEditingMode;
+};
 
 type CreateWindowParams = {
 	title?: string;
@@ -41,9 +47,8 @@ export class WindowService {
 	#windowsOnTop = new Set<number>();
 	#windowsByZIndex = new Map<number, number>();
 	#focusedWindow: DisplayWindow | null = null;
-	#draggingWindow: DisplayWindow | null = null;
-	#draggingOffset = new Vec2(0, 0);
-	#windowSequence = 1;
+	#editingWindow: EditingWindow | null = null;
+	#windowIdSequence = 1;
 
 	public static windowExists(dWindow?: DisplayWindow) {
 		return !!dWindow?.id;
@@ -99,7 +104,6 @@ export class WindowService {
 	}
 
 	public handleClose(e: Event, dWindow: DisplayWindow) {
-		console.log(dWindow);
 		return this.closeWindow(dWindow);
 	}
 
@@ -137,26 +141,34 @@ export class WindowService {
 		}
 	}
 
-	public handleDragStart(e: MouseEvent, dWindow: DisplayWindow) {
+	public handleDragStart(e: MouseEvent, dWindow: DisplayWindow, mode: WindowEditingMode) {
 		// TODO handle Center anchor
 
-		this.#draggingWindow = dWindow;
-		this.#draggingOffset = new Vec2(
-			dWindow.anchor.x * dWindow.position.x - e.clientX,
-			dWindow.anchor.y * dWindow.position.y - e.clientY
-		);
+		const offset =
+			mode == "moving"
+				? new Vec2(dWindow.anchor.x * dWindow.position.x - e.clientX, dWindow.anchor.y * dWindow.position.y - e.clientY)
+				: new Vec2(dWindow.anchor.x * dWindow.size.x - e.clientX, dWindow.anchor.y * dWindow.size.y - e.clientY);
+		this.#editingWindow = { dWindow, mode, offset };
 	}
 
 	public handleDragEnd(e: MouseEvent) {
-		this.#draggingWindow = null;
+		if (this.#editingWindow) {
+			this.#editingWindow.dWindow.editing = null;
+			this.#editingWindow = null;
+		}
 	}
 
 	public handleDrag(e: MouseEvent) {
-		const dWindow = this.#draggingWindow;
-		if (!dWindow) return;
+		if (!this.#editingWindow?.dWindow) return;
+		const dWindow = this.#editingWindow.dWindow;
 
-		dWindow.position.x = dWindow.anchor.x * (e.clientX + this.#draggingOffset.x);
-		dWindow.position.y = dWindow.anchor.y * (e.clientY + this.#draggingOffset.y);
+		if (this.#editingWindow.mode == "moving") {
+			dWindow.position.x = dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x);
+			dWindow.position.y = dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y);
+		} else {
+			dWindow.size.x = dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x);
+			dWindow.size.y = dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y);
+		}
 		this.updateWindowsStore();
 	}
 
@@ -243,6 +255,6 @@ export class WindowService {
 	}
 
 	private determineNewWindowId() {
-		return this.#windowSequence++;
+		return this.#windowIdSequence++;
 	}
 }

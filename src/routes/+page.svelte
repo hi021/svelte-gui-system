@@ -1,14 +1,14 @@
 <script lang="ts">
 	import DisplayWindow from "$lib/Window/DisplayWindow.svelte";
-	import { content } from "$lib/Window/NotificationPopupContent.svelte";
+	import { content } from "$lib/Window/Contents/Templates/NotificationTemplate.svelte";
 	import { DisplayWindow as DWindow } from "$lib/Window/DisplayWindow";
-	import { WindowService } from "$lib/WindowManagerService";
+	import { WindowService } from "$lib/Window/WindowService";
+	import { PredicateMode } from "$lib/PredicateMode";
 	import { WindowButton } from "$lib/Window/WindowButton";
 	import { AnchorPoint } from "$lib/Window/AnchorPoint";
 	import { GameState } from "$lib/GameState.svelte";
 	import { onDestroy } from "svelte";
 	import { Vec2 } from "$lib/Vec2";
-	import { PredicateMode } from "$lib/PredicateMode";
 
 	let finderInputText: string;
 
@@ -55,7 +55,6 @@
 	clickableBtn.text = "Clicc";
 	clickableBtn.action = () => {
 		++gameState.money;
-		console.log("Clicc", gameState.money);
 	};
 	windowManager.createWindow({
 		windowClass: "clickable",
@@ -81,6 +80,7 @@
 <main class="container" style="display: flex; flex-direction:column;flex: 1 1 auto;">
 	<h1 style="width: 100%; text-align:center;">${gameState.money}</h1>
 
+	<!-- // TODO: set pointer style -->
 	{#each windows as dWindow}
 		<DisplayWindow
 			{dWindow}
@@ -88,7 +88,12 @@
 			onminimize={(e) => windowManager.handleMinimize(e, dWindow)}
 			onmaximize={(e) => windowManager.handleMaximize(e, dWindow)}
 			onfocus={(e) => windowManager.handleFocus(e, dWindow)}
-			ondragstart={(e) => windowManager.handleDragStart(e, dWindow)} />
+			onmovestart={(e: MouseEvent) => {
+				dWindow.editing == "moving" && windowManager.handleDragStart(e, dWindow, dWindow.editing ?? "moving");
+			}}
+			onresizestart={(e: MouseEvent) => {
+				dWindow.editing == "resizing" && windowManager.handleDragStart(e, dWindow, dWindow.editing);
+			}} />
 	{/each}
 
 	<button
