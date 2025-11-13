@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { DisplayWindow } from "./DisplayWindow";
+	import type { DisplayWindow, WindowEditMode } from "./DisplayWindow";
 	import { KeybindService } from "$lib/Keybind/KeybindService";
 	import { fade, scale, slide } from "svelte/transition";
 	import { onDestroy, onMount } from "svelte";
@@ -23,11 +23,17 @@
 		onresizestart: (e: MouseEvent) => void;
 	} = $props();
 	if (!dWindow) throw new Error("Failed to render DisplayWindow - no valid prop passed");
-
 	console.debug("Mounted window:", dWindow);
-	let dWindowElement: HTMLDivElement;
 
-	const preventFocus = (e: DragEvent) => e.preventDefault();
+	let dWindowElement: HTMLDivElement;
+	let editMode: WindowEditMode = $state(null);
+
+	const setEditMode = (mode: WindowEditMode = null) => {
+		dWindow.setEditMode(mode);
+		editMode = dWindow.editMode;
+	};
+	// TODO this allows the div to be focused - to determine
+	// const preventFocus = (e: DragEvent) => e.preventDefault();
 	const handleKeyUp = (e: KeyboardEvent) => {
 		const keyAction = KeybindService.getEventKeyAction(e);
 		switch (keyAction) {
@@ -38,24 +44,24 @@
 			case KeyAction.WINDOW_MAXIMIZE:
 				return onmaximize(e);
 			case KeyAction.WINDOW_RESIZE_MOD:
-				return dWindow.setEditMode();
+				return setEditMode();
 		}
 	};
 	const handleKeyDown = (e: KeyboardEvent) => {
 		const keyAction = KeybindService.getEventKeyAction(e);
 		switch (keyAction) {
 			case KeyAction.WINDOW_RESIZE_MOD:
-				return dWindow.setEditMode("resizing");
+				return setEditMode("resizing");
 		}
 	};
 
 	onMount(() => {
-		dWindowElement.addEventListener("dragstart", preventFocus);
+		// dWindowElement.addEventListener("dragstart", preventFocus);
 		dWindowElement.addEventListener("keyup", handleKeyUp);
 		dWindowElement.addEventListener("keydown", handleKeyDown);
 	});
 	onDestroy(() => {
-		dWindowElement.removeEventListener("dragstart", preventFocus);
+		// dWindowElement.removeEventListener("dragstart", preventFocus);
 		dWindowElement.removeEventListener("keyup", handleKeyUp);
 		dWindowElement.removeEventListener("keydown", handleKeyDown);
 	});
@@ -66,7 +72,7 @@
 		class="display-window-backdrop unselectable"
 		data-window-class={dWindow.windowClass}
 		style="--z-index: {dWindow.zIndex}"
-		transition:fade={{ duration: 120 }}>
+		transition:fade|global={{ duration: 120 }}>
 	</div>
 {/if}
 <div
@@ -74,6 +80,7 @@
 	bind:this={dWindowElement}
 	class="display-window-container unselectable"
 	data-window-class={dWindow.windowClass}
+	data-edit-mode={editMode}
 	draggable="false"
 	style={dWindow.css}
 	tabindex="0"
@@ -88,7 +95,7 @@
 		<div
 			class="display-window-titlebar"
 			onmousedown={(e) => {
-				dWindow.setEditMode("moving");
+				setEditMode("moving");
 				onmovestart(e);
 			}}
 			role="contentinfo">
@@ -118,6 +125,7 @@
 			{#if dWindow.buttons?.length}
 				<div class="display-window-button-container">
 					{#each dWindow.buttons as button}
+						<!-- TODO move to a component? -->
 						<button onclick={button.action}>{button.text}</button>
 					{/each}
 				</div>

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import "../styles.css";
+	import "../main.css";
+	import "../windows.css";
 	//  import "../icons.css"
 
 	let { children } = $props();

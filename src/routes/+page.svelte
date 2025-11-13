@@ -9,6 +9,8 @@
 	import { GameState } from "$lib/GameState.svelte";
 	import { onDestroy } from "svelte";
 	import { Vec2 } from "$lib/Vec2";
+	import { Color } from "$lib/Color/Color";
+	import { ColorEnum } from "$lib/Color/ColorEnum";
 
 	let finderInputText: string;
 
@@ -80,7 +82,6 @@
 <main class="container" style="display: flex; flex-direction:column;flex: 1 1 auto;">
 	<h1 style="width: 100%; text-align:center;">${gameState.money}</h1>
 
-	<!-- // TODO: set pointer style -->
 	{#each windows as dWindow}
 		<DisplayWindow
 			{dWindow}
@@ -89,10 +90,10 @@
 			onmaximize={(e) => windowManager.handleMaximize(e, dWindow)}
 			onfocus={(e) => windowManager.handleFocus(e, dWindow)}
 			onmovestart={(e: MouseEvent) => {
-				dWindow.editing == "moving" && windowManager.handleDragStart(e, dWindow, dWindow.editing ?? "moving");
+				dWindow.editMode == "moving" && windowManager.handleDragStart(e, dWindow, dWindow.editMode ?? "moving");
 			}}
 			onresizestart={(e: MouseEvent) => {
-				dWindow.editing == "resizing" && windowManager.handleDragStart(e, dWindow, dWindow.editing);
+				dWindow.editMode == "resizing" && windowManager.handleDragStart(e, dWindow, dWindow.editMode);
 			}} />
 	{/each}
 
@@ -101,10 +102,9 @@
 		onclick={() =>
 			windowManager.createWindow({
 				title: "TOP",
-				customContainerStyle: "background-color: #aa3355;",
+				customContainerStyle: `background-color: ${new Color(ColorEnum.INFO)};`,
 				size: v2,
 				alwaysOnTop: true,
-				backdropVisible: true,
 				content: content,
 				props: { text: "New dupa" },
 				buttons: [button]
@@ -134,5 +134,9 @@
 		<input type="text" bind:value={finderInputText} />
 		<button type="submit" onclick={() => console.log(windowManager.getWindowsByPredicates(JSON.parse(finderInputText)))}
 			>Find ALL</button>
+	</form>
+	<form style="z-index: 90;">
+		<input type="text" bind:value={finderInputText} />
+		<button type="submit" onclick={() => windowManager.createWindow(JSON.parse(finderInputText))}>Create</button>
 	</form>
 </main>

@@ -6,13 +6,12 @@ import { WindowButton } from "./WindowButton";
 import { PredicateMode } from "$lib/PredicateMode";
 import { WindowService } from "$lib/Window/WindowService";
 
-export type WindowEditingMode = "moving" | "resizing" | null;
+export type WindowEditMode = "moving" | "resizing" | null;
 
 export class DisplayWindow {
 	public title = "";
 	public windowClass = "NONE";
 	public layout = new WindowLayout();
-	public position = new Vec2(0, 0);
 	public minimizable = true;
 	public maximizable = true;
 	public resizeable = true;
@@ -22,11 +21,14 @@ export class DisplayWindow {
 	public minimized = false;
 	public maximized = false;
 	public backdropVisible = false;
-	public editing: WindowEditingMode = null;
+	public editMode: WindowEditMode = null;
 	public customContainerStyle = "";
 	public props?: Record<string, any>;
 	#id = 0;
 	#size = new Vec2(600, 400);
+	#position = new Vec2(0, 0);
+	#minSize = new Vec2(160, 32);
+	#maxSize: Vec2 | undefined;
 	#anchor = new Vec2(1, 1); // x = 1 -> left, x = -1 -> right; y = 1 -> top, y = -1 -> bottom (see getAnchorEnum())
 	#zIndex = WindowService.DEFAULT_Z_INDEX;
 	#buttons: WindowButton[] = [];
@@ -48,14 +50,70 @@ export class DisplayWindow {
 	}
 	public set size(size: Vec2) {
 		if (!(size instanceof Vec2)) throw new TypeError("Invalid window property value provided - size must be a Vec2");
-		if (size.x <= 0 || size.y <= 0)
-			throw new Error(
-				"Invalid window property value provided - size must be a Vec2 consisting of two positive numbers"
-			);
+
+		if (size.x < this.minSize.x) size.x = this.minSize.x;
+		else if (this.maxSize && size.x > this.maxSize.x) size.x = this.maxSize.x;
+		if (size.y < this.minSize.y) size.y = this.minSize.y;
+		else if (this.maxSize && size.y > this.maxSize.y) size.y = this.maxSize.y;
+
 		this.#size = size;
 	}
 	public setSize(w: number, h: number) {
 		this.size = new Vec2(w, h);
+	}
+
+	public get minSize() {
+		return this.#minSize;
+	}
+	public set minSize(size: Vec2) {
+		if (!(size instanceof Vec2)) throw new TypeError("Invalid window property value provided - size must be a Vec2");
+		if (size.x <= 0 || size.y <= 0)
+			throw new Error(
+				"Invalid window property value provided - size must be a Vec2 consisting of two positive numbers"
+			);
+		if (this.maxSize && (size.x > this.maxSize.x || size.y > this.maxSize.y))
+			throw new Error("Invalid window property value provided - min size must be less than max size");
+
+		this.#minSize = size;
+	}
+	public setMinSize(w: number, h: number) {
+		this.minSize = new Vec2(w, h);
+	}
+
+	public get maxSize() {
+		return this.#maxSize;
+	}
+	public set maxSize(size: Vec2 | undefined) {
+		if (size == null) {
+			this.#maxSize = undefined;
+			return;
+		}
+
+		if (!(size instanceof Vec2)) throw new TypeError("Invalid window property value provided - size must be a Vec2");
+		if (size.x <= 0 || size.y <= 0)
+			throw new Error(
+				"Invalid window property value provided - size must be a Vec2 consisting of two positive numbers"
+			);
+
+		if (size.x < this.minSize.x || size.y < this.minSize.y)
+			throw new Error("Invalid window property value provided - max size must be greater than min size");
+
+		this.#maxSize = size;
+	}
+	public setMaxSize(w: number, h: number) {
+		this.maxSize = new Vec2(w, h);
+	}
+
+	public get position() {
+		return this.#position;
+	}
+	public set position(position: Vec2) {
+		if (!(position instanceof Vec2))
+			throw new TypeError("Invalid window property value provided - position must be a Vec2");
+		this.#position = position;
+	}
+	public setPosition(w: number, h: number) {
+		this.#position = new Vec2(w, h);
 	}
 
 	public get anchor() {
@@ -102,15 +160,14 @@ export class DisplayWindow {
 	public setParent(dWindow?: DisplayWindow) {
 		if (!dWindow) return this.removeParent();
 		if (this.#parent == dWindow) return;
-		if (this.#children.includes(dWindow))
-			return console.warn(`Attempted to set existing child as parent for ${this.toString()}`);
-		if (!WindowService.windowExists(dWindow)) return console.warn(`Attempted to set parent for ${this.toString()}`);
+		if (this.#children.includes(dWindow)) return console.warn(`Attempted to set existing child as parent for ${this}`);
+		if (!WindowService.windowExists(dWindow)) return console.warn(`Attempted to set parent for ${this}`);
 
 		dWindow.children.push(this);
 		this.#parent = dWindow;
 	}
 	public removeParent() {
-		if (!this.parent) return console.warn(`Attempted to remove inexistent parent from ${this.toString()}`);
+		if (!this.parent) return console.warn(`Attempted to remove inexistent parent from ${this}`);
 		this.parent.removeChildOnly(this);
 		this.#parent = undefined;
 	}
@@ -126,7 +183,7 @@ export class DisplayWindow {
 	}
 	public removeChild(dWindow: DisplayWindow) {
 		if (!dWindow) return;
-		if (dWindow.parent != this) return console.warn(`Attempted to remove inexistent child from ${this.toString()}`);
+		if (dWindow.parent != this) return console.warn(`Attempted to remove inexistent child from ${this}`);
 		dWindow.removeParent();
 	}
 	public removeChildren(dWindows: DisplayWindow[]) {
@@ -139,10 +196,10 @@ export class DisplayWindow {
 		this.#children = this.#children.filter((child) => child != dWindow);
 	}
 
-	public setEditMode(mode: WindowEditingMode = null) {
+	public setEditMode(mode: WindowEditMode = null) {
 		if (mode == "moving" && !this.draggable) return;
 		if (mode == "resizing" && !this.resizeable) return;
-		this.editing = mode;
+		this.editMode = mode;
 	}
 
 	public close() {

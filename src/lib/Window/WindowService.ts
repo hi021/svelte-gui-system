@@ -5,12 +5,12 @@ import { Vec2 } from "../Vec2";
 import { writable } from "svelte/store";
 import { AnchorPoint } from "./AnchorPoint";
 import { PredicateMode } from "../PredicateMode";
-import { DisplayWindow, type WindowEditingMode } from "./DisplayWindow";
+import { DisplayWindow, type WindowEditMode } from "./DisplayWindow";
 
 type EditingWindow = {
 	dWindow: DisplayWindow;
 	offset: Vec2;
-	mode: WindowEditingMode;
+	mode: WindowEditMode;
 };
 
 type CreateWindowParams = {
@@ -141,7 +141,7 @@ export class WindowService {
 		}
 	}
 
-	public handleDragStart(e: MouseEvent, dWindow: DisplayWindow, mode: WindowEditingMode) {
+	public handleDragStart(e: MouseEvent, dWindow: DisplayWindow, mode: WindowEditMode) {
 		// TODO handle Center anchor
 
 		const offset =
@@ -153,7 +153,7 @@ export class WindowService {
 
 	public handleDragEnd(e: MouseEvent) {
 		if (this.#editingWindow) {
-			this.#editingWindow.dWindow.editing = null;
+			this.#editingWindow.dWindow.editMode = null;
 			this.#editingWindow = null;
 		}
 	}
@@ -163,12 +163,16 @@ export class WindowService {
 		const dWindow = this.#editingWindow.dWindow;
 
 		if (this.#editingWindow.mode == "moving") {
-			dWindow.position.x = dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x);
-			dWindow.position.y = dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y);
-		} else {
-			dWindow.size.x = dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x);
-			dWindow.size.y = dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y);
-		}
+			dWindow.setPosition(
+				(dWindow.position.x = dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x)),
+				(dWindow.position.y = dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y))
+			);
+		} else
+			dWindow.setSize(
+				dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x),
+				dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y)
+			);
+
 		this.updateWindowsStore();
 	}
 

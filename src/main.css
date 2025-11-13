@@ -1,0 +1,44 @@
+:root {
+	--rem: 16px;
+	font-size: var(--rem);
+
+	--color-darkest: oklch(17% 0 0);
+	--color-darker: oklch(27% 0 0);
+	--color-dark: oklch(37% 0 0);
+	--color-darkish: oklch(47% 0 0);
+
+	--color-lightest: oklch(95% 0 0);
+	--color-lighter: oklch(88% 0 0);
+	--color-light: oklch(81% 0 0);
+
+	--color-primary: oklch(36% 0.17 300);
+	--color-secondary: oklch(80% 0.1 300);
+	--color-tertiary: oklch(60% 0.17 355);
+	--color-error: oklch(57% 0.17 25);
+	--color-warning: oklch(80% 0.17 70);
+	--color-success: oklch(55% 0.17 150);
+	--color-info: oklch(55% 0.17 255);
+	/* --color-claret: oklch(42% 0.17 355); */
+
+	color-scheme: dark;
+	font-family: "Noto Sans", system-ui, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+html,
+body {
+	min-height: 100svh;
+}
+body {
+	margin: 0;
+	background-color: var(--color-darker);
+	color: var(--color-lighter);
+}
+
+.unselectable {
+	user-drag: none;
+	-webkit-user-drag: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+}
