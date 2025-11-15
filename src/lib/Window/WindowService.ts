@@ -1,11 +1,12 @@
 import type { Snippet } from "svelte";
 import type { WindowLayout } from "./WindowLayout";
-import type { WindowButton } from "./WindowButton";
+import type { WindowButton } from "./Button/WindowButton";
 import { Vec2 } from "../Vec2";
 import { writable } from "svelte/store";
 import { AnchorPoint } from "./AnchorPoint";
 import { PredicateMode } from "../PredicateMode";
 import { DisplayWindow, type WindowEditMode } from "./DisplayWindow";
+import { EventService } from "$lib/Event/EventService";
 
 type EditingWindow = {
 	dWindow: DisplayWindow;
@@ -49,6 +50,10 @@ export class WindowService {
 	#focusedWindow: DisplayWindow | null = null;
 	#editingWindow: EditingWindow | null = null;
 	#windowIdSequence = 1;
+
+	public constructor() {
+		EventService.windowCloseEvent.subscribe((event) => event && this.closeWindow(event.sourceWindow));
+	}
 
 	public static windowExists(dWindow?: DisplayWindow) {
 		return !!dWindow?.id;
@@ -216,6 +221,11 @@ export class WindowService {
 		if (options.parent != null) dWindow.setParent(options.parent);
 		if (options.children?.length) dWindow.addChildren(options.children);
 
+		this.registerWindow(dWindow);
+	}
+
+	public createClassWindow(dWindow: DisplayWindow) {
+		dWindow.id = this.determineNewWindowId();
 		this.registerWindow(dWindow);
 	}
 

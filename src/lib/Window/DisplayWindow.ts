@@ -2,7 +2,7 @@ import type { Snippet } from "svelte";
 import { Vec2 } from "../Vec2";
 import { AnchorPoint } from "./AnchorPoint";
 import { WindowLayout } from "./WindowLayout";
-import { WindowButton } from "./WindowButton";
+import { WindowButton } from "./Button/WindowButton";
 import { PredicateMode } from "$lib/PredicateMode";
 import { WindowService } from "$lib/Window/WindowService";
 
@@ -43,6 +43,18 @@ export class DisplayWindow {
 
 	public get id() {
 		return this.#id;
+	}
+	public set id(id: number) {
+		if (this.id) {
+			console.warn(`Attempted to override id for ${this}`);
+			return;
+		}
+		if (!id) {
+			console.warn(`Attempted to unset id for ${this}`);
+			return;
+		}
+
+		this.#id = id;
 	}
 
 	public get size() {
@@ -104,6 +116,7 @@ export class DisplayWindow {
 		this.maxSize = new Vec2(w, h);
 	}
 
+	// TODO bounding box to prevent dragging off screen
 	public get position() {
 		return this.#position;
 	}
@@ -233,8 +246,12 @@ export class DisplayWindow {
     ${this.customContainerStyle}`;
 	}
 
+	public setButtons(buttons: WindowButton[]) {
+		this.#buttons = [];
+		for (const button of buttons) this.addButton(button);
+	}
+
 	public addButton(button: WindowButton) {
-		// TODO validate
 		this.#buttons.push(button.clone());
 	}
 

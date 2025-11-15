@@ -4,20 +4,35 @@
 	import { DisplayWindow as DWindow } from "$lib/Window/DisplayWindow";
 	import { WindowService } from "$lib/Window/WindowService";
 	import { PredicateMode } from "$lib/PredicateMode";
-	import { WindowButton } from "$lib/Window/WindowButton";
+	import { WindowButton } from "$lib/Window/Button/WindowButton";
 	import { AnchorPoint } from "$lib/Window/AnchorPoint";
 	import { GameState } from "$lib/GameState.svelte";
 	import { onDestroy } from "svelte";
 	import { Vec2 } from "$lib/Vec2";
 	import { Color } from "$lib/Color/Color";
 	import { ColorEnum } from "$lib/Color/ColorEnum";
+	import { NotificationWindow } from "$lib/Window/Templates/NotificationWindow";
+	import { EventService } from "$lib/Event/EventService";
+	import { WindowCloseEvent } from "$lib/Event/WindowCloseEvent";
 
 	let finderInputText: string;
+	let factoryInputText: string;
 
 	const v1 = new Vec2(300, 300);
 	const v2 = new Vec2(300, 300);
 	const button = new WindowButton();
 	button.text = "OK";
+
+	const alwaysOnTopWindowParams = {
+		title: "TOP",
+		customContainerStyle: `background-color: ${new Color(ColorEnum.INFO)};`,
+		size: v2,
+		alwaysOnTop: true,
+		content: content,
+		props: { text: "New dupa" },
+		buttons: [button]
+	};
+
 	const gameState = new GameState();
 	const windowManager = new WindowService();
 
@@ -85,7 +100,7 @@
 	{#each windows as dWindow}
 		<DisplayWindow
 			{dWindow}
-			onclose={(e) => windowManager.handleClose(e, dWindow)}
+			onclose={(e) => EventService.dispatchEvent(new WindowCloseEvent(dWindow))}
 			onminimize={(e) => windowManager.handleMinimize(e, dWindow)}
 			onmaximize={(e) => windowManager.handleMaximize(e, dWindow)}
 			onfocus={(e) => windowManager.handleFocus(e, dWindow)}
@@ -97,18 +112,17 @@
 			}} />
 	{/each}
 
+	<button style="z-index: 90; display: block;" onclick={() => windowManager.createWindow(alwaysOnTopWindowParams)}>
+		Always On Top
+	</button>
 	<button
 		style="z-index: 90; display: block;"
 		onclick={() =>
-			windowManager.createWindow({
-				title: "TOP",
-				customContainerStyle: `background-color: ${new Color(ColorEnum.INFO)};`,
-				size: v2,
-				alwaysOnTop: true,
-				content: content,
-				props: { text: "New dupa" },
-				buttons: [button]
-			})}>ADD DUPA</button>
+			windowManager.createClassWindow(
+				new NotificationWindow("You have just created a notification!!", "With a title even!")
+			)}>
+		NotificationWindow
+	</button>
 	<button style="z-index: 90; display: block;" onclick={() => (windows[0].props!.text = "Changed...")}
 		>Change notif prop woah</button>
 	<button style="z-index: 90; display: block;" onclick={() => windowManager.debugAllWindows()}>Big debug button</button>
@@ -136,7 +150,7 @@
 			>Find ALL</button>
 	</form>
 	<form style="z-index: 90;">
-		<input type="text" bind:value={finderInputText} />
-		<button type="submit" onclick={() => windowManager.createWindow(JSON.parse(finderInputText))}>Create</button>
+		<input type="text" bind:value={factoryInputText} />
+		<button type="submit" onclick={() => windowManager.createWindow(JSON.parse(factoryInputText))}>Create</button>
 	</form>
 </main>

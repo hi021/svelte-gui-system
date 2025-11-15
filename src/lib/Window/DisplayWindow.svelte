@@ -4,6 +4,7 @@
 	import { fade, scale, slide } from "svelte/transition";
 	import { onDestroy, onMount } from "svelte";
 	import { KeyAction } from "$lib/Keybind/KeyActionEnum";
+	import WindowButton from "./Button/WindowButton.svelte";
 
 	let {
 		dWindow,
@@ -123,10 +124,10 @@
 			</div>
 
 			{#if dWindow.buttons?.length}
+				<!-- TODO implement ButtonLayout -->
 				<div class="display-window-button-container">
 					{#each dWindow.buttons as button}
-						<!-- TODO move to a component? -->
-						<button onclick={button.action}>{button.text}</button>
+						<WindowButton {dWindow} {button} />
 					{/each}
 				</div>
 			{/if}

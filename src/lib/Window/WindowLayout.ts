@@ -1,4 +1,4 @@
-import { ButtonLayout } from "./ButtonLayout";
+import { ButtonLayout } from "./Button/ButtonLayout";
 
 export class WindowLayout {
 	public title = true;
