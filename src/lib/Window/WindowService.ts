@@ -53,6 +53,7 @@ export class WindowService {
 
 	public constructor() {
 		EventService.windowCloseEvent.subscribe((event) => event && this.closeWindow(event.sourceWindow));
+		EventService.windowModificationEvent.subscribe((event) => event && this.updateWindowsStore());
 	}
 
 	public static windowExists(dWindow?: DisplayWindow) {
@@ -131,19 +132,11 @@ export class WindowService {
 	}
 
 	public toggleMaximizeWindow(dWindow: DisplayWindow) {
-		if (dWindow.maximizable || dWindow.maximized) {
-			dWindow.maximized = !dWindow.maximized;
-			dWindow.minimized = false;
-			this.updateWindowsStore();
-		}
+		dWindow.maximized = !dWindow.maximized;
 	}
 
 	public toggleMinimizeWindow(dWindow: DisplayWindow) {
-		if (dWindow.minimizable || dWindow.minimized) {
-			dWindow.minimized = !dWindow.minimized;
-			dWindow.maximized = false;
-			this.updateWindowsStore();
-		}
+		dWindow.minimized = !dWindow.minimized;
 	}
 
 	public handleDragStart(e: MouseEvent, dWindow: DisplayWindow, mode: WindowEditMode) {

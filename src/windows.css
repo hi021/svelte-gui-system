@@ -2,6 +2,7 @@
 	position: fixed;
 	inset: 0;
 	background-color: color-mix(in srgb, var(--color-dark) 60%, transparent);
+	backdrop-filter: blur(4px);
 	z-index: var(--z-index);
 }
 .display-window-container:focus {
@@ -16,7 +17,7 @@
 
 	border-radius: var(--border-radius);
 	background-color: var(--color-darkish);
-	overflow: hidden;
+	overflow: auto;
 	z-index: var(--z-index);
 }
 .display-window-container[data-edit-mode="resizing"] {

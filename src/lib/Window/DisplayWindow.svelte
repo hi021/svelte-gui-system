@@ -33,7 +33,7 @@
 		dWindow.setEditMode(mode);
 		editMode = dWindow.editMode;
 	};
-	// TODO this allows the div to be focused - to determine
+	// TODO this allows the div to be focused (:focus) - to determine
 	// const preventFocus = (e: DragEvent) => e.preventDefault();
 	const handleKeyUp = (e: KeyboardEvent) => {
 		const keyAction = KeybindService.getEventKeyAction(e);
@@ -89,13 +89,15 @@
 		onfocus(e);
 		onresizestart(e);
 	}}
-	{onfocus}
 	role="dialog">
+	<!-- {onfocus} -->
 	{#if dWindow.layout.shouldRenderTitleBar()}
 		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div
 			class="display-window-titlebar"
 			onmousedown={(e) => {
+				const tagName = (e.target as HTMLElement)?.tagName;
+				if (tagName == "BUTTON" || tagName == "ICON") return;
 				setEditMode("moving");
 				onmovestart(e);
 			}}
@@ -104,13 +106,16 @@
 			{#if dWindow.layout.shouldRenderTitleBarButtonContainer()}
 				<span class="display-window-titlebar-btn-container">
 					{#if dWindow.layout.minimizeButton}
-						<button class="display-window-minimize-btn" onclick={onminimize}>MN</button>
+						<button class="display-window-minimize-btn btn-icon" onclick={onminimize} title="Minimize"
+							><icon class="minimize"></icon></button>
 					{/if}
 					{#if dWindow.layout.maximizeButton}
-						<button class="display-window-maximize-btn" onclick={onmaximize}>MX</button>
+						<button class="display-window-maximize-btn btn-icon" onclick={onmaximize} title="Maximize"
+							><icon class="maximize"></icon></button>
 					{/if}
 					{#if dWindow.layout.closeButton}
-						<button class="display-window-close-btn" onclick={onclose}>X</button>
+						<button class="display-window-close-btn btn-icon" onclick={onclose} title="Close"
+							><icon class="add rot-45"></icon></button>
 					{/if}
 				</span>
 			{/if}
@@ -125,7 +130,7 @@
 
 			{#if dWindow.buttons?.length}
 				<!-- TODO implement ButtonLayout -->
-				<div class="display-window-button-container">
+				<div class="display-window-button-container {dWindow.layout.getButtonContainerClass()}">
 					{#each dWindow.buttons as button}
 						<WindowButton {dWindow} {button} />
 					{/each}

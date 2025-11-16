@@ -1,10 +1,13 @@
 import type { Snippet } from "svelte";
 import { Vec2 } from "../Vec2";
+import { Vec4 } from "$lib/Vec4";
 import { AnchorPoint } from "./AnchorPoint";
 import { WindowLayout } from "./WindowLayout";
 import { WindowButton } from "./Button/WindowButton";
+import { EventService } from "$lib/Event/EventService";
 import { PredicateMode } from "$lib/PredicateMode";
 import { WindowService } from "$lib/Window/WindowService";
+import { WindowModificationEvent } from "$lib/Event/WindowModificationEvent";
 
 export type WindowEditMode = "moving" | "resizing" | null;
 
@@ -18,15 +21,16 @@ export class DisplayWindow {
 	public draggable = true;
 	public alwaysOnTop = false;
 	public focused = true;
-	public minimized = false;
-	public maximized = false;
 	public backdropVisible = false;
 	public editMode: WindowEditMode = null;
 	public customContainerStyle = "";
 	public props?: Record<string, any>;
 	#id = 0;
 	#size = new Vec2(600, 400);
-	#position = new Vec2(0, 0);
+	#position = new Vec2();
+	#dragBoundary = new Vec4(); // TODO
+	#minimized = false;
+	#maximized = false;
 	#minSize = new Vec2(160, 32);
 	#maxSize: Vec2 | undefined;
 	#anchor = new Vec2(1, 1); // x = 1 -> left, x = -1 -> right; y = 1 -> top, y = -1 -> bottom (see getAnchorEnum())
@@ -55,6 +59,32 @@ export class DisplayWindow {
 		}
 
 		this.#id = id;
+	}
+
+	public get minimized() {
+		return this.#minimized;
+	}
+	public set minimized(minimized: boolean) {
+		if (!this.minimizable && minimized) return;
+		if (this.#maximized) {
+			this.#maximized = false;
+			this.position = new Vec2();
+		}
+		this.#minimized = minimized;
+
+		EventService.dispatchEvent(new WindowModificationEvent(this));
+	}
+
+	public get maximized() {
+		return this.#maximized;
+	}
+	public set maximized(maximized: boolean) {
+		if (!this.maximizable && maximized) return;
+		this.#minimized = false;
+		if (!maximized) this.position = new Vec2();
+		this.#maximized = maximized;
+
+		EventService.dispatchEvent(new WindowModificationEvent(this));
 	}
 
 	public get size() {
@@ -116,7 +146,6 @@ export class DisplayWindow {
 		this.maxSize = new Vec2(w, h);
 	}
 
-	// TODO bounding box to prevent dragging off screen
 	public get position() {
 		return this.#position;
 	}
@@ -189,7 +218,8 @@ export class DisplayWindow {
 		return this.#children;
 	}
 	public addChild(dWindow: DisplayWindow) {
-		if (!WindowService.windowExists(dWindow)) return console.warn();
+		if (!WindowService.windowExists(dWindow))
+			return console.warn(`Attempted to add already orphaned window to ${this}`);
 	}
 	public addChildren(dWindows: DisplayWindow[]) {
 		for (const dWindow of dWindows) this.addChild(dWindow);
@@ -210,6 +240,11 @@ export class DisplayWindow {
 	}
 
 	public setEditMode(mode: WindowEditMode = null) {
+		if (this.maximized) {
+			if (mode != "moving") return;
+			this.maximized = false;
+		}
+
 		if (mode == "moving" && !this.draggable) return;
 		if (mode == "resizing" && !this.resizeable) return;
 		this.editMode = mode;
@@ -222,6 +257,8 @@ export class DisplayWindow {
 	}
 
 	public get positioningCss() {
+		if (this.maximized) return "inset: 0;";
+
 		const x = `${this.position.x}px`;
 		const y = `${this.position.y}px`;
 
@@ -236,10 +273,19 @@ export class DisplayWindow {
 		return `--x: ${x}; --y: ${y}; ${inset}`;
 	}
 
+	public get sizeCss() {
+		const w = this.maximized ? "100%" : `${this.size.x}px`;
+		const h = this.maximized ? "100%" : `${this.size.y}px`;
+		const height = this.minimized ? "" : " height: var(--h);";
+		return `--w: ${w}; --h: ${h};${height}`;
+	}
+
 	public get css() {
+		// TODO perhaps a StyleService that stores the rem font-size, so this isnt as hard coded?
+		const overflow = this.size.x < 72 || this.size.y < 72 ? "overflow: hidden;" : "";
 		return `${this.positioningCss}
-    --w: ${this.size.x}px; --h: ${this.size.y}px;
-    ${this.minimized ? "" : "height: var(--h);"}
+		${this.sizeCss}
+		${overflow}
     --border-radius: ${this.layout.borderRadius}px;
     --padding: ${this.layout.padding}px;
     --z-index: ${this.zIndex};
