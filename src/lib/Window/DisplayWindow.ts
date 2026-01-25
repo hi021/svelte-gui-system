@@ -1,19 +1,19 @@
-import type { Snippet } from "svelte";
-import { Vec2 } from "../Vec2";
-import { Vec4 } from "$lib/Vec4";
-import { AnchorPoint } from "./AnchorPoint";
-import { WindowLayout } from "./WindowLayout";
-import { WindowButton } from "./Button/WindowButton";
-import { EventService } from "$lib/Event/EventService";
-import { PredicateMode } from "$lib/PredicateMode";
-import { WindowService } from "$lib/Window/WindowService";
-import { WindowModificationEvent } from "$lib/Event/WindowModificationEvent";
+import type { Snippet } from 'svelte';
+import { Vec2 } from '../Vec2';
+import { Vec4 } from '$lib/Vec4';
+import { AnchorPoint } from './AnchorPoint';
+import { WindowLayout } from './WindowLayout';
+import { WindowButton } from './Button/WindowButton';
+import { EventService } from '$lib/Event/EventService';
+import { PredicateMode } from '$lib/PredicateMode';
+import { WindowService } from '$lib/Window/WindowService';
+import { WindowModificationEvent } from '$lib/Event/WindowModificationEvent';
 
-export type WindowEditMode = "moving" | "resizing" | null;
+export type WindowEditMode = 'moving' | 'resizing' | null;
 
 export class DisplayWindow {
-	public title = "";
-	public windowClass = "NONE";
+	public title = '';
+	public windowClass = 'NONE';
 	public layout = new WindowLayout();
 	public minimizable = true;
 	public maximizable = true;
@@ -23,7 +23,7 @@ export class DisplayWindow {
 	public focused = true;
 	public backdropVisible = false;
 	public editMode: WindowEditMode = null;
-	public customContainerStyle = "";
+	public customContainerStyle = '';
 	public props?: Record<string, any>;
 	#id = 0;
 	#size = new Vec2(600, 400);
@@ -91,7 +91,7 @@ export class DisplayWindow {
 		return this.#size;
 	}
 	public set size(size: Vec2) {
-		if (!(size instanceof Vec2)) throw new TypeError("Invalid window property value provided - size must be a Vec2");
+		if (!(size instanceof Vec2)) throw new TypeError('Invalid window property value provided - size must be a Vec2');
 
 		if (size.x < this.minSize.x) size.x = this.minSize.x;
 		else if (this.maxSize && size.x > this.maxSize.x) size.x = this.maxSize.x;
@@ -108,13 +108,13 @@ export class DisplayWindow {
 		return this.#minSize;
 	}
 	public set minSize(size: Vec2) {
-		if (!(size instanceof Vec2)) throw new TypeError("Invalid window property value provided - size must be a Vec2");
+		if (!(size instanceof Vec2)) throw new TypeError('Invalid window property value provided - size must be a Vec2');
 		if (size.x <= 0 || size.y <= 0)
 			throw new Error(
-				"Invalid window property value provided - size must be a Vec2 consisting of two positive numbers"
+				'Invalid window property value provided - size must be a Vec2 consisting of two positive numbers'
 			);
 		if (this.maxSize && (size.x > this.maxSize.x || size.y > this.maxSize.y))
-			throw new Error("Invalid window property value provided - min size must be less than max size");
+			throw new Error('Invalid window property value provided - min size must be less than max size');
 
 		this.#minSize = size;
 	}
@@ -131,14 +131,14 @@ export class DisplayWindow {
 			return;
 		}
 
-		if (!(size instanceof Vec2)) throw new TypeError("Invalid window property value provided - size must be a Vec2");
+		if (!(size instanceof Vec2)) throw new TypeError('Invalid window property value provided - size must be a Vec2');
 		if (size.x <= 0 || size.y <= 0)
 			throw new Error(
-				"Invalid window property value provided - size must be a Vec2 consisting of two positive numbers"
+				'Invalid window property value provided - size must be a Vec2 consisting of two positive numbers'
 			);
 
 		if (size.x < this.minSize.x || size.y < this.minSize.y)
-			throw new Error("Invalid window property value provided - max size must be greater than min size");
+			throw new Error('Invalid window property value provided - max size must be greater than min size');
 
 		this.#maxSize = size;
 	}
@@ -151,7 +151,7 @@ export class DisplayWindow {
 	}
 	public set position(position: Vec2) {
 		if (!(position instanceof Vec2))
-			throw new TypeError("Invalid window property value provided - position must be a Vec2");
+			throw new TypeError('Invalid window property value provided - position must be a Vec2');
 		this.#position = position;
 	}
 	public setPosition(w: number, h: number) {
@@ -179,8 +179,8 @@ export class DisplayWindow {
 		return this.#zIndex;
 	}
 	public set zIndex(zIndex: number) {
-		if (typeof zIndex != "number" || isNaN(zIndex))
-			throw new TypeError("Invalid window property value provided - zIndex must be a numerical value");
+		if (typeof zIndex != 'number' || isNaN(zIndex))
+			throw new TypeError('Invalid window property value provided - zIndex must be a numerical value');
 		this.#zIndex = zIndex;
 	}
 
@@ -240,13 +240,13 @@ export class DisplayWindow {
 	}
 
 	public setEditMode(mode: WindowEditMode = null) {
+		if (mode == 'moving' && !this.draggable) return;
+		if (mode == 'resizing' && !this.resizeable) return;
 		if (this.maximized) {
-			if (mode != "moving") return;
+			if (mode != 'moving') return;
 			this.maximized = false;
 		}
 
-		if (mode == "moving" && !this.draggable) return;
-		if (mode == "resizing" && !this.resizeable) return;
 		this.editMode = mode;
 	}
 
@@ -257,12 +257,12 @@ export class DisplayWindow {
 	}
 
 	public get positioningCss() {
-		if (this.maximized) return "inset: 0;";
+		if (this.maximized) return 'inset: 0;';
 
 		const x = `${this.position.x}px`;
 		const y = `${this.position.y}px`;
 
-		let inset = "";
+		let inset = '';
 		// if (this.anchor == AnchorPoint.CENTER) TODO
 
 		if (this.#anchor.y == 1) inset += `top: ${y}; `;
@@ -274,15 +274,15 @@ export class DisplayWindow {
 	}
 
 	public get sizeCss() {
-		const w = this.maximized ? "100%" : `${this.size.x}px`;
-		const h = this.maximized ? "100%" : `${this.size.y}px`;
-		const height = this.minimized ? "" : " height: var(--h);";
+		const w = this.maximized ? '100%' : `${this.size.x}px`;
+		const h = this.maximized ? '100%' : `${this.size.y}px`;
+		const height = this.minimized ? '' : ' height: var(--h);';
 		return `--w: ${w}; --h: ${h};${height}`;
 	}
 
 	public get css() {
 		// TODO perhaps a StyleService that stores the rem font-size, so this isnt as hard coded?
-		const overflow = this.size.x < 72 || this.size.y < 72 ? "overflow: hidden;" : "";
+		const overflow = this.size.x < 72 || this.size.y < 72 ? 'overflow: hidden;' : '';
 		return `${this.positioningCss}
 		${this.sizeCss}
 		${overflow}

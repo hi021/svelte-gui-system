@@ -5,8 +5,9 @@
 	backdrop-filter: blur(4px);
 	z-index: var(--z-index);
 }
+
 .display-window-container:focus {
-	outline: 2px solid var(--color-active);
+	outline: 2px solid var(--color-secondary);
 }
 .display-window-container {
 	position: fixed;
@@ -20,9 +21,10 @@
 	overflow: auto;
 	z-index: var(--z-index);
 }
-.display-window-container[data-edit-mode="resizing"] {
+.display-window-container[data-edit-mode='resizing'] {
 	cursor: nesw-resize;
 }
+
 .display-window-titlebar {
 	display: flex;
 	justify-content: space-between;
@@ -39,6 +41,7 @@
 	display: flex;
 	flex-wrap: nowrap;
 }
+
 .display-window-content-wrapper {
 	display: flex;
 	flex-direction: column;
@@ -47,4 +50,9 @@
 }
 .display-window-content {
 	flex: 1 1 auto;
+}
+
+.display-window-button-container {
+	display: flex;
+	gap: 10px;
 }

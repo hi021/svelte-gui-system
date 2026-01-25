@@ -1,12 +1,12 @@
-import type { Snippet } from "svelte";
-import type { WindowLayout } from "./WindowLayout";
-import type { WindowButton } from "./Button/WindowButton";
-import { Vec2 } from "../Vec2";
-import { writable } from "svelte/store";
-import { AnchorPoint } from "./AnchorPoint";
-import { PredicateMode } from "../PredicateMode";
-import { DisplayWindow, type WindowEditMode } from "./DisplayWindow";
-import { EventService } from "$lib/Event/EventService";
+import type { Snippet } from 'svelte';
+import type { WindowLayout } from './WindowLayout';
+import type { WindowButton } from './Button/WindowButton';
+import { Vec2 } from '../Vec2';
+import { writable } from 'svelte/store';
+import { AnchorPoint } from './AnchorPoint';
+import { PredicateMode } from '../PredicateMode';
+import { DisplayWindow, type WindowEditMode } from './DisplayWindow';
+import { EventService } from '$lib/Event/EventService';
 
 type EditingWindow = {
 	dWindow: DisplayWindow;
@@ -104,8 +104,8 @@ export class WindowService {
 	}
 
 	public debugAllWindows() {
-		let debugString = "";
-		for (const [i, dWindow] of this.#windows) debugString += i + "\t" + dWindow.toString() + "\n";
+		let debugString = '';
+		for (const [i, dWindow] of this.#windows) debugString += i + '\t' + dWindow.toString() + '\n';
 		console.log(debugString);
 	}
 
@@ -143,9 +143,9 @@ export class WindowService {
 		// TODO handle Center anchor
 
 		const offset =
-			mode == "moving"
-				? new Vec2(dWindow.anchor.x * dWindow.position.x - e.clientX, dWindow.anchor.y * dWindow.position.y - e.clientY)
-				: new Vec2(dWindow.anchor.x * dWindow.size.x - e.clientX, dWindow.anchor.y * dWindow.size.y - e.clientY);
+			mode == 'moving' ?
+				new Vec2(dWindow.anchor.x * dWindow.position.x - e.clientX, dWindow.anchor.y * dWindow.position.y - e.clientY)
+			:	new Vec2(dWindow.anchor.x * dWindow.size.x - e.clientX, dWindow.anchor.y * dWindow.size.y - e.clientY);
 		this.#editingWindow = { dWindow, mode, offset };
 	}
 
@@ -160,7 +160,7 @@ export class WindowService {
 		if (!this.#editingWindow?.dWindow) return;
 		const dWindow = this.#editingWindow.dWindow;
 
-		if (this.#editingWindow.mode == "moving") {
+		if (this.#editingWindow.mode == 'moving') {
 			dWindow.setPosition(
 				(dWindow.position.x = dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x)),
 				(dWindow.position.y = dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y))
@@ -224,7 +224,7 @@ export class WindowService {
 
 	private registerWindow(dWindow: DisplayWindow) {
 		if (this.#windows.size >= WindowService.MAX_WINDOWS)
-			throw new Error("Failed to register window: DisplayWindow array overflow - please destroy existing windows");
+			throw new Error('Failed to register window: DisplayWindow array overflow - please destroy existing windows');
 
 		if (dWindow.focused) this.focusWindow(dWindow);
 		if (dWindow.alwaysOnTop) this.#windowsOnTop.add(dWindow.id);

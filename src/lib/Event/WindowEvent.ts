@@ -1,5 +1,5 @@
-import type { DisplayWindow } from "$lib/Window/DisplayWindow";
-import { GameEvent } from "./GameEvent";
+import type { DisplayWindow } from '$lib/Window/DisplayWindow';
+import { GameEvent } from './GameEvent';
 
 export abstract class WindowEvent extends GameEvent {
 	public sourceWindow: DisplayWindow;

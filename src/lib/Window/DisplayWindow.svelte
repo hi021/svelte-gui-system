@@ -1,10 +1,10 @@
 <script lang="ts">
-	import type { DisplayWindow, WindowEditMode } from "./DisplayWindow";
-	import { KeybindService } from "$lib/Keybind/KeybindService";
-	import { fade, scale, slide } from "svelte/transition";
-	import { onDestroy, onMount } from "svelte";
-	import { KeyAction } from "$lib/Keybind/KeyActionEnum";
-	import WindowButton from "./Button/WindowButton.svelte";
+	import type { DisplayWindow, WindowEditMode } from './DisplayWindow';
+	import { KeybindService } from '$lib/Keybind/KeybindService';
+	import { fade, scale, slide } from 'svelte/transition';
+	import { onDestroy, onMount } from 'svelte';
+	import { KeyAction } from '$lib/Keybind/KeyActionEnum';
+	import WindowButton from './Button/WindowButton.svelte';
 
 	let {
 		dWindow,
@@ -23,8 +23,8 @@
 		onmovestart: (e: MouseEvent) => void;
 		onresizestart: (e: MouseEvent) => void;
 	} = $props();
-	if (!dWindow) throw new Error("Failed to render DisplayWindow - no valid prop passed");
-	console.debug("Mounted window:", dWindow);
+	if (!dWindow) throw new Error('Failed to render DisplayWindow - no valid prop passed');
+	console.debug('Mounted window:', dWindow);
 
 	let dWindowElement: HTMLDivElement;
 	let editMode: WindowEditMode = $state(null);
@@ -33,8 +33,7 @@
 		dWindow.setEditMode(mode);
 		editMode = dWindow.editMode;
 	};
-	// TODO this allows the div to be focused (:focus) - to determine
-	// const preventFocus = (e: DragEvent) => e.preventDefault();
+
 	const handleKeyUp = (e: KeyboardEvent) => {
 		const keyAction = KeybindService.getEventKeyAction(e);
 		switch (keyAction) {
@@ -52,21 +51,24 @@
 		const keyAction = KeybindService.getEventKeyAction(e);
 		switch (keyAction) {
 			case KeyAction.WINDOW_RESIZE_MOD:
-				return setEditMode("resizing");
+				return setEditMode('resizing');
 		}
 	};
 
 	onMount(() => {
-		// dWindowElement.addEventListener("dragstart", preventFocus);
-		dWindowElement.addEventListener("keyup", handleKeyUp);
-		dWindowElement.addEventListener("keydown", handleKeyDown);
+		dWindowElement.addEventListener('keyup', handleKeyUp);
+		dWindowElement.addEventListener('keydown', handleKeyDown);
 	});
 	onDestroy(() => {
-		// dWindowElement.removeEventListener("dragstart", preventFocus);
-		dWindowElement.removeEventListener("keyup", handleKeyUp);
-		dWindowElement.removeEventListener("keydown", handleKeyDown);
+		dWindowElement.removeEventListener('keyup', handleKeyUp);
+		dWindowElement.removeEventListener('keydown', handleKeyDown);
 	});
 </script>
+
+<!-- TODO: finish z-index layer ordering shenanigans -->
+<!-- TODO: fix window not snapping to cursor when leaving maximized -->
+<!-- TODO: prevent window height going below button container height unless minimized -->
+<!-- TODO: block tabindex from venturing outside of current window - especially if it's a window with a backdrop -->
 
 {#if dWindow.backdropVisible}
 	<div
@@ -76,6 +78,7 @@
 		transition:fade|global={{ duration: 120 }}>
 	</div>
 {/if}
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	transition:scale={{ duration: 150 }}
 	bind:this={dWindowElement}
@@ -85,22 +88,23 @@
 	draggable="false"
 	style={dWindow.css}
 	tabindex="0"
+	{onfocus}
 	onmousedown={(e) => {
 		onfocus(e);
 		onresizestart(e);
 	}}
 	role="dialog">
-	<!-- {onfocus} -->
 	{#if dWindow.layout.shouldRenderTitleBar()}
-		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<div
 			class="display-window-titlebar"
+			ondragstart={(e) => console.log(e)}
 			onmousedown={(e) => {
 				const tagName = (e.target as HTMLElement)?.tagName;
-				if (tagName == "BUTTON" || tagName == "ICON") return;
-				setEditMode("moving");
+				if (tagName == 'BUTTON' || tagName == 'ICON') return;
+				setEditMode('moving');
 				onmovestart(e);
 			}}
+			ondblclick={onmaximize}
 			role="contentinfo">
 			<span class="display-window-title">{dWindow.title}</span>
 			{#if dWindow.layout.shouldRenderTitleBarButtonContainer()}
@@ -129,7 +133,6 @@
 			</div>
 
 			{#if dWindow.buttons?.length}
-				<!-- TODO implement ButtonLayout -->
 				<div class="display-window-button-container {dWindow.layout.getButtonContainerClass()}">
 					{#each dWindow.buttons as button}
 						<WindowButton {dWindow} {button} />

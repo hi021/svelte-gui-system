@@ -1,4 +1,4 @@
-import { ButtonLayout } from "./Button/ButtonLayout";
+import { ButtonLayout } from './Button/ButtonLayout';
 
 export class WindowLayout {
 	public title = true;
@@ -20,15 +20,15 @@ export class WindowLayout {
 	public getButtonContainerClass() {
 		switch (this.buttonLayout) {
 			case ButtonLayout.CENTERED:
-				return "button-container-centered";
+				return 'flex-centered';
 			case ButtonLayout.EVENLY_SPACED:
-				return "button-container-evenly-spaced";
+				return 'flex-evenly-spaced';
 			case ButtonLayout.LEFT_TO_RIGHT:
-				return "button-container-ltr";
+				return 'flex-ltr';
 			case ButtonLayout.RIGHT_TO_LEFT:
-				return "button-container-rtl";
+				return 'flex-rtl';
 			case ButtonLayout.SPACE_BETWEEN:
-				return "button-container-space-between";
+				return 'flex-space-between';
 		}
 	}
 }

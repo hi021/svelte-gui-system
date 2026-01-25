@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { DisplayWindow } from "../DisplayWindow";
-	import type { WindowButton } from "./WindowButton";
+	import type { DisplayWindow } from '../DisplayWindow';
+	import type { WindowButton } from './WindowButton';
 
 	let { button, dWindow }: { button: WindowButton; dWindow: DisplayWindow } = $props();
-	const cssIconClass = !button.text && button.icon ? "btn-icon" : "btn-text";
+	const cssIconClass = !button.text && button.icon ? 'btn-icon' : 'btn-text';
 </script>
 
 <button

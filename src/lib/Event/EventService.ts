@@ -1,7 +1,7 @@
-import { readonly, writable } from "svelte/store";
-import { WindowCloseEvent } from "./WindowCloseEvent";
-import { GameEvent } from "./GameEvent";
-import { WindowModificationEvent } from "./WindowModificationEvent";
+import { readonly, writable } from 'svelte/store';
+import { WindowCloseEvent } from './WindowCloseEvent';
+import { GameEvent } from './GameEvent';
+import { WindowModificationEvent } from './WindowModificationEvent';
 
 export class EventService {
 	static #windowCloseEvent = writable<WindowCloseEvent>();
@@ -14,7 +14,7 @@ export class EventService {
 	}
 
 	public static dispatchEvent(event: GameEvent) {
-		console.debug("Received game event: ", event);
+		console.debug('Received game event: ', event);
 
 		if (event instanceof WindowCloseEvent) {
 			return this.#windowCloseEvent.set(event);

@@ -1,11 +1,13 @@
-import type { DisplayWindow } from "../DisplayWindow";
+import type { DisplayWindow } from '../DisplayWindow';
+
+export type WindowButtonAction = (e: MouseEvent, dWindow: DisplayWindow) => any;
 
 export class WindowButton {
 	public text: string | undefined;
 	public icon: string | undefined;
-	public action: ((e: MouseEvent, dWindow: DisplayWindow) => any) | undefined;
+	public action: WindowButtonAction | undefined;
 	public customStyle: string | undefined;
-	public buttonClass = "NONE";
+	public buttonClass = 'NONE';
 
 	public clone() {
 		const cloned = new WindowButton();

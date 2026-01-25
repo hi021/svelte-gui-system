@@ -1,3 +1,3 @@
-import { WindowEvent } from "./WindowEvent";
+import { WindowEvent } from './WindowEvent';
 
 export class WindowCloseEvent extends WindowEvent {}

@@ -21,7 +21,7 @@
 	/* --color-claret: oklch(42% 0.17 355); */
 
 	color-scheme: dark;
-	font-family: "Noto Sans", system-ui, sans-serif;
+	font-family: 'Noto Sans', system-ui, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -36,9 +36,34 @@ body {
 }
 
 .unselectable {
-	user-drag: none;
 	-webkit-user-drag: none;
 	user-select: none;
 	-webkit-user-select: none;
 	-moz-user-select: none;
+}
+
+.flex-centered {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+}
+.flex-evenly-spaced {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-evenly;
+}
+.flex-ltr {
+	display: flex;
+	flex-direction: row;
+	justify-content: left;
+}
+.flex-rtl {
+	display: flex;
+	flex-direction: row-reverse;
+	justify-content: right;
+}
+.flex-space-between {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
 }
