@@ -38,7 +38,7 @@ export class ButtonHelper {
 		return button;
 	}
 	public static buildOkButton() {
-		return ButtonHelper.putWindowCloseAction(ButtonHelper.buildSimpleButton({ text: 'OK', buttonClass: 'BTN_OK' }));
+		return ButtonHelper.buildSimpleButton({ text: 'OK', buttonClass: 'BTN_OK', action: this.getWindowCloseAction() });
 	}
 	public static buildYesButton() {
 		return ButtonHelper.buildSimpleButton({ text: 'Yes', buttonClass: 'BTN_YES' });
@@ -49,9 +49,5 @@ export class ButtonHelper {
 
 	public static getWindowCloseAction() {
 		return (e: MouseEvent, dWindow: DisplayWindow) => EventService.dispatchEvent(new WindowCloseEvent(dWindow));
-	}
-	public static putWindowCloseAction(button: WindowButton) {
-		button.action = ButtonHelper.getWindowCloseAction();
-		return button;
 	}
 }

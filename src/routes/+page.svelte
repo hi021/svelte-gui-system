@@ -17,6 +17,9 @@
 	import { ButtonConfiguration } from '$lib/Window/Button/ButtonConfiguration';
 	import { ButtonLayout } from '$lib/Window/Button/ButtonLayout';
 	import { ButtonHelper } from '$lib/Window/Button/ButtonHelper';
+	import { AudioService } from '$lib/Audio/AudioService';
+	import { Audio as AudioObject } from '$lib/Audio/Audio.svelte';
+	import Audio from '$lib/Audio/AudioComponent.svelte';
 
 	let finderInputText: string;
 	let factoryInputText: string;
@@ -24,7 +27,8 @@
 	const v1 = new Vec2(300, 300);
 	const v2 = new Vec2(300, 300);
 	const button = new WindowButton();
-	button.text = 'OK';
+	button.action = (e, dWindow) => (dWindow.backdropVisible = !dWindow.backdropVisible);
+	button.text = 'Toggle backdrop idk man';
 
 	const alwaysOnTopWindowParams = {
 		title: 'TOP',
@@ -38,6 +42,10 @@
 
 	const gameState = new GameState();
 	const windowManager = new WindowService();
+	const audioManager = new AudioService();
+
+	// TODO: separate component for all audio objects
+	audioManager.registerAudioObject('/poggers.mp3', 'poggers', true);
 
 	const handleDrag = (e: MouseEvent) => windowManager.handleDrag(e);
 	const handleDragEnd = (e: MouseEvent) => windowManager.handleDragEnd(e);
@@ -45,9 +53,12 @@
 	document.addEventListener('mouseup', handleDragEnd);
 
 	let windows: DWindow[] = [];
+	let audioObjects: AudioObject[] = [];
 	const windowsUnsubscriber = windowManager.windows.subscribe((value) => (windows = value));
+	const audioObjectsUnsubscriber = audioManager.audioObjects.subscribe((value) => (audioObjects = value));
 	onDestroy(() => {
 		windowsUnsubscriber();
+		audioObjectsUnsubscriber();
 		document.removeEventListener('mousemove', handleDrag);
 		document.removeEventListener('mouseup', handleDragEnd);
 	});
@@ -83,6 +94,13 @@
 		content: clickable,
 		buttons: [clickableBtn]
 	});
+	windowManager.createWindow({
+		content: customContent
+	});
+
+	function playSenko() {
+		audioManager.replayByTag('poggers');
+	}
 </script>
 
 {#snippet clickable(props?: { toClick?: GameState })}
@@ -94,8 +112,22 @@
 {/snippet}
 
 {#snippet customContent()}
-	<img src="https://poggers.ltd/static/media/senko-poggers.ad2cb0b444bab5076f61.png" alt="POGGERS" />
+	<img
+		class="unselectable"
+		src="https://poggers.ltd/static/media/senko-poggers.ad2cb0b444bab5076f61.png"
+		alt="POGGERS"
+		style="position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%;" />
+	<button
+		style="position: relative; z-index: 2; font-size: 2em;"
+		onclick={() => {
+			gameState.money += Math.round(Math.random() * 300);
+			playSenko();
+		}}>pog now</button>
 {/snippet}
+
+{#each audioObjects as audioObject}
+	<Audio audio={audioObject} />
+{/each}
 
 <main class="container" style="display: flex; flex-direction:column;flex: 1 1 auto;">
 	<h1 style="width: 100%; text-align:center;">${gameState.money}</h1>
@@ -115,6 +147,7 @@
 			}} />
 	{/each}
 
+	<button style="z-index: 90; display: block;" onclick={playSenko}> Play poggers audio </button>
 	<button style="z-index: 90; display: block;" onclick={() => windowManager.createWindow(alwaysOnTopWindowParams)}>
 		Always On Top
 	</button>

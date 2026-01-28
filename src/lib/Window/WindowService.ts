@@ -39,7 +39,7 @@ type CreateWindowParams = {
 };
 
 export class WindowService {
-	static readonly MAX_WINDOWS = 99;
+	static readonly MAX_WINDOWS = 128;
 	static readonly DEFAULT_Z_INDEX = 3;
 	static readonly TOP_Z_INDEX = WindowService.DEFAULT_Z_INDEX + WindowService.MAX_WINDOWS + 3;
 
@@ -64,6 +64,7 @@ export class WindowService {
 		return this.#windowsStore;
 	}
 
+	// TODO: Would be fun to compare the performance of this vs normal for loop - probably doesn't matter for 100 windows
 	private get topZIndex() {
 		return this.#windowsByZIndex.size ? Math.max(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
 	}
@@ -224,7 +225,7 @@ export class WindowService {
 
 	private registerWindow(dWindow: DisplayWindow) {
 		if (this.#windows.size >= WindowService.MAX_WINDOWS)
-			throw new Error('Failed to register window: DisplayWindow array overflow - please destroy existing windows');
+			throw new Error(`Failed to register window: maximum number of windows is ${WindowService.MAX_WINDOWS}`);
 
 		if (dWindow.focused) this.focusWindow(dWindow);
 		if (dWindow.alwaysOnTop) this.#windowsOnTop.add(dWindow.id);
