@@ -1,12 +1,12 @@
-import type { Snippet } from 'svelte';
-import type { WindowLayout } from './WindowLayout';
-import type { WindowButton } from './Button/WindowButton';
-import { Vec2 } from '../Vec2';
-import { writable } from 'svelte/store';
-import { AnchorPoint } from './AnchorPoint';
-import { PredicateMode } from '../PredicateMode';
-import { DisplayWindow, type WindowEditMode } from './DisplayWindow';
 import { EventService } from '$lib/Event/EventService';
+import type { Snippet } from 'svelte';
+import { writable } from 'svelte/store';
+import { PredicateMode } from '../Util/PredicateMode';
+import { Vec2 } from '../Util/Vec2';
+import { AnchorPoint } from './AnchorPoint';
+import type { WindowButton } from './Button/WindowButton';
+import { DisplayWindow, type WindowEditMode } from './DisplayWindow';
+import type { WindowLayout } from './WindowLayout';
 
 type EditingWindow = {
 	dWindow: DisplayWindow;
@@ -15,8 +15,8 @@ type EditingWindow = {
 };
 
 type CreateWindowParams = {
+	objectClass?: string;
 	title?: string;
-	windowClass?: string;
 	layout?: WindowLayout;
 	position?: Vec2;
 	minimizable?: boolean;
@@ -43,10 +43,10 @@ export class WindowService {
 	static readonly DEFAULT_Z_INDEX = 3;
 	static readonly TOP_Z_INDEX = WindowService.DEFAULT_Z_INDEX + WindowService.MAX_WINDOWS + 3;
 
-	#windows = new Map<number, DisplayWindow>();
+	readonly #windows = new Map<number, DisplayWindow>();
 	#windowsStore = writable<DisplayWindow[]>([]);
 	#windowsOnTop = new Set<number>();
-	#windowsByZIndex = new Map<number, number>();
+	readonly #windowsByZIndex = new Map<number, number>();
 	#focusedWindow: DisplayWindow | null = null;
 	#editingWindow: EditingWindow | null = null;
 	#windowIdSequence = 1;
@@ -68,7 +68,6 @@ export class WindowService {
 	private get topZIndex() {
 		return this.#windowsByZIndex.size ? Math.max(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
 	}
-
 	private get bottomZIndex() {
 		return this.#windowsByZIndex.size ? Math.min(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
 	}
@@ -82,7 +81,10 @@ export class WindowService {
 		return id ? this.getWindowById(id) : undefined;
 	}
 
-	public getWindowsByPredicates(predicates: Record<string, any>, mode = PredicateMode.ALL) {
+	public getWindowsByPredicates<T extends DisplayWindow>(
+		predicates: Partial<{ [K in keyof T]: T[K] }>,
+		mode = PredicateMode.ALL
+	) {
 		const windows: DisplayWindow[] = [];
 		for (const [k, dWindow] of this.#windows) {
 			if (dWindow.matchesPredicates(predicates, mode)) windows.push(dWindow);
@@ -91,7 +93,7 @@ export class WindowService {
 	}
 
 	public getWindowsByClass(windowClass: string) {
-		return this.getWindowsByPredicates({ windowClass }, PredicateMode.ANY);
+		return this.getWindowsByPredicates({ objectClass: windowClass }, PredicateMode.ANY);
 	}
 
 	public getWindowsByTitle(title: string) {
@@ -104,7 +106,7 @@ export class WindowService {
 		}
 	}
 
-	public debugAllWindows() {
+	public debugAllObjects() {
 		let debugString = '';
 		for (const [i, dWindow] of this.#windows) debugString += i + '\t' + dWindow.toString() + '\n';
 		console.log(debugString);
@@ -195,7 +197,7 @@ export class WindowService {
 		const dWindow = new DisplayWindow(this.determineNewWindowId(), options.content);
 
 		if (options.title) dWindow.title = options.title;
-		if (options.windowClass) dWindow.windowClass = options.windowClass;
+		if (options.objectClass) dWindow.objectClass = options.objectClass;
 		if (options.layout) dWindow.layout = options.layout;
 		if (options.position) dWindow.position = options.position;
 		if (options.minimizable != null) dWindow.minimizable = options.minimizable;

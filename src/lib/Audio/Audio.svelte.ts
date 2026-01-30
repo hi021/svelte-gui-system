@@ -1,18 +1,18 @@
 import { MediaState } from './MediaState';
 
 export class Audio {
+	public objectClass = 'NONE';
+	public path: string;
+	public tag: string | undefined;
+	public looping = $state(false);
 	#id: number;
 	#element: HTMLAudioElement | undefined;
-	#lazy: boolean; // TODO: only build HTML element on first play() call
-	#volume = 0.5;
+	#lazy: boolean;
+	#volume = $state(0.5);
 	#state = $state(MediaState.UNDEFINED);
-	public class = 'NONE';
-	public tag: string | undefined;
-	public path: string;
-	public speed = 1;
-	public looping = false;
+	#speed = $state(1);
 
-	public constructor(id: number, path: string, tag?: string, lazy = false) {
+	public constructor(id: number, path: string, tag?: string, lazy = true) {
 		this.#id = id;
 		this.path = path;
 		this.tag = tag;
@@ -40,6 +40,13 @@ export class Audio {
 	}
 	public set volume(volume: number) {
 		this.#volume = Math.min(Math.max(0, volume), 1);
+	}
+
+	public get speed() {
+		return this.#speed;
+	}
+	public set speed(speed: number) {
+		this.#speed = Math.min(Math.max(0.1, speed), 10);
 	}
 
 	public get element() {
@@ -87,5 +94,15 @@ export class Audio {
 	public stop() {
 		this.pause();
 		this.rewind();
+	}
+
+	public remove() {
+		this.#id = 0;
+		this.stop();
+		this.state = MediaState.UNDEFINED;
+	}
+
+	public toString() {
+		return `AudioObject [#${this.#id}, CLASS: "${this.objectClass}"] (path: ${this.path}) state ${this.#state} at ${this.volume} volume, ${this.speed}x speed"`;
 	}
 }

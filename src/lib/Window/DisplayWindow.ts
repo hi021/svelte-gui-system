@@ -1,19 +1,19 @@
-import type { Snippet } from 'svelte';
-import { Vec2 } from '../Vec2';
-import { Vec4 } from '$lib/Vec4';
-import { AnchorPoint } from './AnchorPoint';
-import { WindowLayout } from './WindowLayout';
-import { WindowButton } from './Button/WindowButton';
 import { EventService } from '$lib/Event/EventService';
-import { PredicateMode } from '$lib/PredicateMode';
-import { WindowService } from '$lib/Window/WindowService';
 import { WindowModificationEvent } from '$lib/Event/WindowModificationEvent';
+import { PredicateMode } from '$lib/Util/PredicateMode';
+import { Vec4 } from '$lib/Util/Vec4';
+import { WindowService } from '$lib/Window/WindowService';
+import type { Snippet } from 'svelte';
+import { Vec2 } from '../Util/Vec2';
+import { AnchorPoint } from './AnchorPoint';
+import { WindowButton } from './Button/WindowButton';
+import { WindowLayout } from './WindowLayout';
 
 export type WindowEditMode = 'moving' | 'resizing' | null;
 
 export class DisplayWindow {
+	public objectClass = 'NONE';
 	public title = '';
-	public windowClass = 'NONE';
 	public layout = new WindowLayout();
 	public minimizable = true;
 	public maximizable = true;
@@ -301,11 +301,10 @@ export class DisplayWindow {
 		this.#buttons.push(button.clone());
 	}
 
-	public matchesPredicates(predicates: Record<string, any>, mode: PredicateMode) {
-		// TODO: Some sort of validation for array/enum/object/class instance fields - those will probably not work
-		const shallowCopyObj: Record<string, any> = { ...this };
+	public matchesPredicates(predicates: Partial<{ [K in keyof this]: this[K] }>, mode: PredicateMode) {
+		// TODO: Some sort of recursion or at least validation for array/enum/object/class instance fields - those will probably not work
 		for (const property in predicates) {
-			if (shallowCopyObj[property] == predicates[property]) {
+			if (this[property] == predicates[property]) {
 				if (mode == PredicateMode.ANY) return true;
 			} else if (mode == PredicateMode.ALL) {
 				return false;
@@ -316,6 +315,6 @@ export class DisplayWindow {
 	}
 
 	public toString() {
-		return `Window [#${this.#id}, CLASS: "${this.windowClass}"] (z: ${this.zIndex}) - "${this.title}"`;
+		return `Window [#${this.#id}, CLASS: "${this.objectClass}"] (z: ${this.zIndex}) - "${this.title}"`;
 	}
 }

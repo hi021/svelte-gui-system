@@ -1,25 +1,24 @@
 <script lang="ts">
-	import DisplayWindow from '$lib/Window/DisplayWindow.svelte';
-	import { content } from '$lib/Window/Contents/Templates/NotificationTemplate.svelte';
-	import { DisplayWindow as DWindow } from '$lib/Window/DisplayWindow';
-	import { WindowService } from '$lib/Window/WindowService';
-	import { PredicateMode } from '$lib/PredicateMode';
-	import { WindowButton } from '$lib/Window/Button/WindowButton';
-	import { AnchorPoint } from '$lib/Window/AnchorPoint';
-	import { GameState } from '$lib/GameState.svelte';
-	import { onDestroy } from 'svelte';
-	import { Vec2 } from '$lib/Vec2';
+	import AudioComponentContainer from '$lib/Audio/AudioComponentContainer.svelte';
+	import { AudioService } from '$lib/Audio/AudioService';
 	import { Color } from '$lib/Color/Color';
 	import { ColorEnum } from '$lib/Color/ColorEnum';
-	import { NotificationWindow } from '$lib/Window/Templates/NotificationWindow';
 	import { EventService } from '$lib/Event/EventService';
 	import { WindowCloseEvent } from '$lib/Event/WindowCloseEvent';
+	import { GameState } from '$lib/GameState.svelte';
+	import { PredicateMode } from '$lib/Util/PredicateMode';
+	import { Vec2 } from '$lib/Util/Vec2';
+	import { AnchorPoint } from '$lib/Window/AnchorPoint';
 	import { ButtonConfiguration } from '$lib/Window/Button/ButtonConfiguration';
-	import { ButtonLayout } from '$lib/Window/Button/ButtonLayout';
 	import { ButtonHelper } from '$lib/Window/Button/ButtonHelper';
-	import { AudioService } from '$lib/Audio/AudioService';
-	import { Audio as AudioObject } from '$lib/Audio/Audio.svelte';
-	import Audio from '$lib/Audio/AudioComponent.svelte';
+	import { ButtonLayout } from '$lib/Window/Button/ButtonLayout';
+	import { WindowButton } from '$lib/Window/Button/WindowButton';
+	import { content } from '$lib/Window/Contents/Templates/NotificationTemplate.svelte';
+	import { DisplayWindow as DWindow } from '$lib/Window/DisplayWindow';
+	import DisplayWindow from '$lib/Window/DisplayWindowComponent.svelte';
+	import { NotificationWindow } from '$lib/Window/Templates/NotificationWindow';
+	import { WindowService } from '$lib/Window/WindowService';
+	import { onDestroy } from 'svelte';
 
 	let finderInputText: string;
 	let factoryInputText: string;
@@ -44,8 +43,8 @@
 	const windowManager = new WindowService();
 	const audioManager = new AudioService();
 
-	// TODO: separate component for all audio objects
-	audioManager.registerAudioObject('/poggers.mp3', 'poggers', true);
+	audioManager.registerAudioObject('/poggers.mp3', 'poggers');
+	const longAudio = audioManager.registerAudioObject('/sewer.mp3', 'sewer', false);
 
 	const handleDrag = (e: MouseEvent) => windowManager.handleDrag(e);
 	const handleDragEnd = (e: MouseEvent) => windowManager.handleDragEnd(e);
@@ -53,12 +52,9 @@
 	document.addEventListener('mouseup', handleDragEnd);
 
 	let windows: DWindow[] = [];
-	let audioObjects: AudioObject[] = [];
 	const windowsUnsubscriber = windowManager.windows.subscribe((value) => (windows = value));
-	const audioObjectsUnsubscriber = audioManager.audioObjects.subscribe((value) => (audioObjects = value));
 	onDestroy(() => {
 		windowsUnsubscriber();
-		audioObjectsUnsubscriber();
 		document.removeEventListener('mousemove', handleDrag);
 		document.removeEventListener('mouseup', handleDragEnd);
 	});
@@ -88,7 +84,7 @@
 		++gameState.money;
 	};
 	windowManager.createWindow({
-		windowClass: 'clickable',
+		objectClass: 'clickable',
 		anchor: AnchorPoint.BOTTOM_LEFT,
 		props: { toClick: gameState },
 		content: clickable,
@@ -103,6 +99,7 @@
 	}
 </script>
 
+<!-- EXAMPLE WINDOW CONTENT - CAN BE MOVED TO SEPARATE .SVELTE COMPONENTS (see Window/Contents) -->
 {#snippet clickable(props?: { toClick?: GameState })}
 	{#key props?.toClick}
 		<p>
@@ -125,13 +122,13 @@
 		}}>pog now</button>
 {/snippet}
 
-{#each audioObjects as audioObject}
-	<Audio audio={audioObject} />
-{/each}
+<AudioComponentContainer {audioManager} />
 
+<!-- -->
 <main class="container" style="display: flex; flex-direction:column;flex: 1 1 auto;">
 	<h1 style="width: 100%; text-align:center;">${gameState.money}</h1>
 
+	<!-- TODO: Probably want that in a separate container component -->
 	{#each windows as dWindow}
 		<DisplayWindow
 			{dWindow}
@@ -147,7 +144,26 @@
 			}} />
 	{/each}
 
-	<button style="z-index: 90; display: block;" onclick={playSenko}> Play poggers audio </button>
+	<div class="row">
+		<button style="z-index: 90; display: inline-block;" onclick={() => longAudio.play()}> Play </button>
+		<button style="z-index: 90; display: inline-block;" onclick={() => longAudio.pause()}> Pause </button>
+		<button style="z-index: 90; display: inline-block;" onclick={() => longAudio.stop()}> Stop </button>
+		<button style="z-index: 90; display: inline-block;" onclick={() => longAudio.rewind()}> Rewind </button>
+		<button style="z-index: 90; display: inline-block;" onclick={() => longAudio.replay()}> Replay </button>
+		<button style="z-index: 90; display: inline-block;" onclick={() => (longAudio.speed += 0.33)}> speed up! </button>
+		<button style="z-index: 90; display: inline-block;" onclick={() => (longAudio.speed -= 0.33)}>
+			speed down!!
+		</button>
+		<button style="z-index: 90; display: inline-block;" onclick={() => (longAudio.volume += 0.25)}> volume up! </button>
+		<button style="z-index: 90; display: inline-block;" onclick={() => (longAudio.volume -= 0.25)}>
+			volume down!!
+		</button>
+		<button
+			style="z-index: 90; display: inline-block;"
+			onclick={() => audioManager.unregisterAudioObject({ path: longAudio.path })}>
+			Delete
+		</button>
+	</div>
 	<button style="z-index: 90; display: block;" onclick={() => windowManager.createWindow(alwaysOnTopWindowParams)}>
 		Always On Top
 	</button>
@@ -163,11 +179,16 @@
 			dWindow.layout.buttonLayout = ButtonLayout.SPACE_BETWEEN;
 			windowManager.createClassWindow(dWindow);
 		}}>
-		NotificationWindow
+		Y/N NotificationWindow
 	</button>
 	<button style="z-index: 90; display: block;" onclick={() => (windows[0].props!.text = 'Changed...')}
 		>Change notif prop woah</button>
-	<button style="z-index: 90; display: block;" onclick={() => windowManager.debugAllWindows()}>Big debug button</button>
+	<button
+		style="z-index: 90; display: block;"
+		onclick={() => {
+			windowManager.debugAllObjects();
+			audioManager.debugAllObjects();
+		}}>Big debug button</button>
 	<button
 		style="z-index: 90; display: block;"
 		onclick={() => {

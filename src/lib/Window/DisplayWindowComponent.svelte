@@ -73,7 +73,7 @@
 {#if dWindow.backdropVisible}
 	<div
 		class="display-window-backdrop unselectable"
-		data-window-class={dWindow.windowClass}
+		data-window-class={dWindow.objectClass}
 		style="--z-index: {dWindow.zIndex}"
 		transition:fade|global={{ duration: 120 }}>
 	</div>
@@ -83,7 +83,7 @@
 	transition:scale={{ duration: 150 }}
 	bind:this={dWindowElement}
 	class="display-window-container unselectable"
-	data-window-class={dWindow.windowClass}
+	data-window-class={dWindow.objectClass}
 	data-edit-mode={editMode}
 	draggable="false"
 	style={dWindow.css}

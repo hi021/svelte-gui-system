@@ -25,7 +25,7 @@ export class NotificationWindow extends DisplayWindow {
 		this.backdropVisible = true;
 		this.maximizable = false;
 		this.minimizable = false;
-		this.windowClass = 'NOTIFICATION';
+		this.objectClass = 'NOTIFICATION';
 		this.layout = NotificationWindow.#windowLayout;
 		this.props = { text };
 		if (title) this.title = title;
