@@ -4,7 +4,7 @@
 	import { fade, scale, slide } from 'svelte/transition';
 	import { onDestroy, onMount } from 'svelte';
 	import { KeyAction } from '$lib/Keybind/KeyActionEnum';
-	import WindowButton from './Button/WindowButton.svelte';
+	import WindowButton from './Button/WindowButtonComponent.svelte';
 
 	let {
 		dWindow,
@@ -12,6 +12,7 @@
 		onminimize,
 		onmaximize,
 		onfocus,
+		onblur,
 		onmovestart,
 		onresizestart
 	}: {
@@ -20,6 +21,7 @@
 		onminimize: (e: Event) => boolean | void;
 		onmaximize: (e: Event) => boolean | void;
 		onfocus: (e: FocusEvent) => void;
+		onblur: (e: FocusEvent) => void;
 		onmovestart: (e: MouseEvent) => void;
 		onresizestart: (e: MouseEvent) => void;
 	} = $props();
@@ -89,6 +91,7 @@
 	style={dWindow.css}
 	tabindex="0"
 	{onfocus}
+	{onblur}
 	onmousedown={(e) => {
 		onfocus(e);
 		onresizestart(e);

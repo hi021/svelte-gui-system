@@ -64,6 +64,10 @@ export class WindowService {
 		return this.#windowsStore;
 	}
 
+	public get focusedWindow() {
+		return this.#focusedWindow;
+	}
+
 	// TODO: Would be fun to compare the performance of this vs normal for loop - probably doesn't matter for 100 windows
 	private get topZIndex() {
 		return this.#windowsByZIndex.size ? Math.max(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
@@ -86,7 +90,7 @@ export class WindowService {
 		mode = PredicateMode.ALL
 	) {
 		const windows: DisplayWindow[] = [];
-		for (const [k, dWindow] of this.#windows) {
+		for (const [_, dWindow] of this.#windows) {
 			if (dWindow.matchesPredicates(predicates, mode)) windows.push(dWindow);
 		}
 		return windows;
@@ -101,7 +105,7 @@ export class WindowService {
 	}
 
 	public getFirstWindowByTitle(title: string) {
-		for (const [k, dWindow] of this.#windows) {
+		for (const [_, dWindow] of this.#windows) {
 			if (dWindow.title == title) return dWindow;
 		}
 	}
@@ -180,17 +184,30 @@ export class WindowService {
 	public handleFocus(e: FocusEvent, dWindow: DisplayWindow) {
 		this.focusWindow(dWindow);
 	}
+	public handleBlur(e: FocusEvent, dWindow: DisplayWindow) {
+		this.unfocusWindow();
+	}
 
 	public focusWindow(dWindow: DisplayWindow) {
-		// TODO
-		if (this.#focusedWindow) {
-			this.#focusedWindow.focused = false;
-		}
+		if (this.#focusedWindow == dWindow) return;
+		this.unfocusWindow();
 
 		dWindow.focused = true;
 		this.#focusedWindow = dWindow;
+		// TODO
 		this.setFocusedWindowZIndex(dWindow);
 		this.updateWindowsStore();
+	}
+
+	public unfocusWindow() {
+		if (!this.#focusedWindow) return;
+
+		this.#focusedWindow.focused = false;
+		this.#focusedWindow = null;
+	}
+
+	public isNodeDisplayWindow(node: EventTarget) {
+		return node instanceof HTMLElement && node.nodeName == 'DIV' && node.hasAttribute('data-window-class');
 	}
 
 	public createWindow(options: CreateWindowParams) {

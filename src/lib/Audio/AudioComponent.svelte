@@ -14,7 +14,9 @@
 		onended: (e: Event, audio: Audio) => boolean | void;
 	} = $props();
 
-	if (!audio.lazy) audio.state = MediaState.READY;
+	// @ts-expect-error allow svelte components to modify state
+	if (!audio.lazy) audio._state = MediaState.READY;
+	const audioTypeWorkaround = audio as any;
 </script>
 
 {#if audio.state != MediaState.UNDEFINED}
@@ -22,7 +24,7 @@
 		data-audio-class={audio.objectClass}
 		data-audio-tag={audio.tag}
 		bind:volume={audio.volume}
-		bind:this={audio.element}
+		bind:this={audioTypeWorkaround._element}
 		bind:playbackRate={audio.speed}
 		src={audio.path}
 		onplay={(e) => onplay(e, audio)}

@@ -13,13 +13,16 @@
 	});
 
 	function onended(e: Event, audio: AudioObject) {
-		audio.state = MediaState.ENDED;
+		// @ts-expect-error allow svelte components to modify state
+		audio._state = MediaState.ENDED;
 	}
 	function onpause(e: Event, audio: AudioObject) {
-		audio.state = MediaState.PAUSED;
+		// @ts-expect-error allow svelte components to modify state
+		audio._state = MediaState.PAUSED;
 	}
 	function onplay(e: Event, audio: AudioObject) {
-		audio.state = MediaState.PLAYING;
+		// @ts-expect-error allow svelte components to modify state
+		audio._state = MediaState.PLAYING;
 	}
 </script>
 

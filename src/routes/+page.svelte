@@ -136,6 +136,7 @@
 			onminimize={(e) => windowManager.handleMinimize(e, dWindow)}
 			onmaximize={(e) => windowManager.handleMaximize(e, dWindow)}
 			onfocus={(e) => windowManager.handleFocus(e, dWindow)}
+			onblur={(e) => windowManager.handleBlur(e, dWindow)}
 			onmovestart={(e: MouseEvent) => {
 				dWindow.editMode == 'moving' && windowManager.handleDragStart(e, dWindow, dWindow.editMode ?? 'moving');
 			}}
@@ -144,76 +145,82 @@
 			}} />
 	{/each}
 
-	<div class="row">
-		<button style="z-index: 90; display: inline-block;" onclick={() => longAudio.play()}> Play </button>
-		<button style="z-index: 90; display: inline-block;" onclick={() => longAudio.pause()}> Pause </button>
-		<button style="z-index: 90; display: inline-block;" onclick={() => longAudio.stop()}> Stop </button>
-		<button style="z-index: 90; display: inline-block;" onclick={() => longAudio.rewind()}> Rewind </button>
-		<button style="z-index: 90; display: inline-block;" onclick={() => longAudio.replay()}> Replay </button>
-		<button style="z-index: 90; display: inline-block;" onclick={() => (longAudio.speed += 0.33)}> speed up! </button>
-		<button style="z-index: 90; display: inline-block;" onclick={() => (longAudio.speed -= 0.33)}>
-			speed down!!
-		</button>
-		<button style="z-index: 90; display: inline-block;" onclick={() => (longAudio.volume += 0.25)}> volume up! </button>
-		<button style="z-index: 90; display: inline-block;" onclick={() => (longAudio.volume -= 0.25)}>
-			volume down!!
-		</button>
-		<button
-			style="z-index: 90; display: inline-block;"
-			onclick={() => audioManager.unregisterAudioObject({ path: longAudio.path })}>
-			Delete
-		</button>
+	<div class="btn-container">
+		<div class="row">
+			<button onclick={() => longAudio.play()}> Play </button>
+			<button onclick={() => longAudio.pause()}> Pause </button>
+			<button onclick={() => longAudio.stop()}> Stop </button>
+			<button onclick={() => longAudio.rewind()}> Rewind </button>
+			<button onclick={() => longAudio.replay()}> Replay </button>
+			<button onclick={() => (longAudio.speed += 0.33)}> speed up! </button>
+			<button onclick={() => (longAudio.speed -= 0.33)}> speed down!! </button>
+			<button onclick={() => (longAudio.volume += 0.16)}> volume up! </button>
+			<button onclick={() => (longAudio.volume -= 0.16)}> volume down!! </button>
+			<button onclick={() => audioManager.unregisterAudioObject({ path: longAudio.path })}> Delete </button>
+		</div>
+
+		<div class="row">
+			<button onclick={() => windowManager.createWindow(alwaysOnTopWindowParams)}> Always On Top </button>
+			<button
+				onclick={() => {
+					const dWindow = new NotificationWindow(
+						'You have just created a notification!!',
+						'With a title even!',
+						ButtonConfiguration.YES_NO,
+						[ButtonHelper.getWindowCloseAction(), () => console.log('Nwahh')]
+					);
+					dWindow.layout.buttonLayout = ButtonLayout.SPACE_BETWEEN;
+					windowManager.createClassWindow(dWindow);
+				}}>
+				Y/N NotificationWindow
+			</button>
+			<button onclick={() => (windows[0].props!.text = 'Changed...')}>Change notif prop woah</button>
+		</div>
+
+		<div class="row">
+			<button
+				onclick={() => {
+					console.log(windowManager.focusedWindow);
+				}}>Get focused window</button>
+			<button
+				onclick={() => {
+					windowManager.debugAllObjects();
+					audioManager.debugAllObjects();
+				}}>Big debug button</button>
+			<button
+				onclick={() => {
+					console.log('Class NONE:', windowManager.getWindowsByClass('NONE'));
+					console.log('Class DUPA:', windowManager.getWindowsByClass('DUPA'));
+					console.log('Title[] TOP:', windowManager.getWindowsByTitle('TOP'));
+					console.log('Title TOP:', windowManager.getFirstWindowByTitle('TOP'));
+					console.log('zIndex 4:', windowManager.getWindowByZIndex(4));
+					console.log('id 1:', windowManager.getWindowById(1));
+					console.log(
+						'ANY Predicates:',
+						windowManager.getWindowsByPredicates(
+							{ alwaysOnTop: true, draggable: true, minimized: false },
+							PredicateMode.ANY
+						)
+					);
+				}}>Finder test</button>
+			<button onclick={() => ++gameState.money}>Add moner</button>
+		</div>
+
+		<form>
+			<input type="text" bind:value={finderInputText} />
+			<button
+				type="submit"
+				onclick={() => console.log(windowManager.getWindowsByPredicates(JSON.parse(finderInputText)))}>Find ALL</button>
+		</form>
+		<form>
+			<input type="text" bind:value={factoryInputText} />
+			<button type="submit" onclick={() => windowManager.createWindow(JSON.parse(factoryInputText))}>Create</button>
+		</form>
 	</div>
-	<button style="z-index: 90; display: block;" onclick={() => windowManager.createWindow(alwaysOnTopWindowParams)}>
-		Always On Top
-	</button>
-	<button
-		style="z-index: 90; display: block;"
-		onclick={() => {
-			const dWindow = new NotificationWindow(
-				'You have just created a notification!!',
-				'With a title even!',
-				ButtonConfiguration.YES_NO,
-				[ButtonHelper.getWindowCloseAction(), () => console.log('Nwahh')]
-			);
-			dWindow.layout.buttonLayout = ButtonLayout.SPACE_BETWEEN;
-			windowManager.createClassWindow(dWindow);
-		}}>
-		Y/N NotificationWindow
-	</button>
-	<button style="z-index: 90; display: block;" onclick={() => (windows[0].props!.text = 'Changed...')}
-		>Change notif prop woah</button>
-	<button
-		style="z-index: 90; display: block;"
-		onclick={() => {
-			windowManager.debugAllObjects();
-			audioManager.debugAllObjects();
-		}}>Big debug button</button>
-	<button
-		style="z-index: 90; display: block;"
-		onclick={() => {
-			console.log('Class NONE:', windowManager.getWindowsByClass('NONE'));
-			console.log('Class DUPA:', windowManager.getWindowsByClass('DUPA'));
-			console.log('Title[] TOP:', windowManager.getWindowsByTitle('TOP'));
-			console.log('Title TOP:', windowManager.getFirstWindowByTitle('TOP'));
-			console.log('zIndex 4:', windowManager.getWindowByZIndex(4));
-			console.log('id 1:', windowManager.getWindowById(1));
-			console.log(
-				'ANY Predicates:',
-				windowManager.getWindowsByPredicates(
-					{ alwaysOnTop: true, draggable: true, minimized: false },
-					PredicateMode.ANY
-				)
-			);
-		}}>Finder test</button>
-	<button style="z-index: 90; display: block;" onclick={() => ++gameState.money}>Add moner</button>
-	<form style="z-index: 90;">
-		<input type="text" bind:value={finderInputText} />
-		<button type="submit" onclick={() => console.log(windowManager.getWindowsByPredicates(JSON.parse(finderInputText)))}
-			>Find ALL</button>
-	</form>
-	<form style="z-index: 90;">
-		<input type="text" bind:value={factoryInputText} />
-		<button type="submit" onclick={() => windowManager.createWindow(JSON.parse(factoryInputText))}>Create</button>
-	</form>
 </main>
+
+<style>
+	.btn-container {
+		z-index: 99;
+	}
+</style>
