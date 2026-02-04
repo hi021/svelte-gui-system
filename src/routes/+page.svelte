@@ -125,7 +125,7 @@
 <AudioComponentContainer {audioManager} />
 
 <!-- -->
-<main class="container" style="display: flex; flex-direction:column;flex: 1 1 auto;">
+<main class="container" style="display: flex; flex-direction: column; flex: 1 1 auto;">
 	<h1 style="width: 100%; text-align:center;">${gameState.money}</h1>
 
 	<!-- TODO: Probably want that in a separate container component -->
@@ -138,14 +138,21 @@
 			onfocus={(e) => windowManager.handleFocus(e, dWindow)}
 			onblur={(e) => windowManager.handleBlur(e, dWindow)}
 			onmovestart={(e: MouseEvent) => {
-				dWindow.editMode == 'moving' && windowManager.handleDragStart(e, dWindow, dWindow.editMode ?? 'moving');
+				dWindow.setEditMode('moving');
+				if (dWindow.editMode !== 'moving') return;
+
+				if (dWindow.maximized) {
+					dWindow.maximized = false;
+					dWindow.position = new Vec2(100, 200); // TODO OFFSET
+				}
+				windowManager.handleDragStart(e, dWindow, dWindow.editMode);
 			}}
 			onresizestart={(e: MouseEvent) => {
 				dWindow.editMode == 'resizing' && windowManager.handleDragStart(e, dWindow, dWindow.editMode);
 			}} />
 	{/each}
 
-	<div class="btn-container">
+	<div class="btn-container unselectable" style="width: fit-content; background-color: rgba(255,255,255,0.25);">
 		<div class="row">
 			<button onclick={() => longAudio.play()}> Play </button>
 			<button onclick={() => longAudio.pause()}> Pause </button>

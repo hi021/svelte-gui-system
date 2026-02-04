@@ -8,6 +8,7 @@ import { Vec2 } from '../Util/Vec2';
 import { AnchorPoint } from './AnchorPoint';
 import { WindowButton } from './Button/WindowButton';
 import { WindowLayout } from './WindowLayout';
+import { isEnumValue } from '$lib/Util/Util';
 
 export type WindowEditMode = 'moving' | 'resizing' | null;
 
@@ -22,13 +23,13 @@ export class DisplayWindow {
 	public alwaysOnTop = false;
 	public focused = true;
 	public backdropVisible = false;
-	public editMode: WindowEditMode = null;
 	public customContainerStyle = '';
 	public props?: Record<string, any>;
 	#id = 0;
 	#size = new Vec2(600, 400);
 	#position = new Vec2();
 	#dragBoundary = new Vec4(); // TODO
+	#editMode: WindowEditMode = null;
 	#minimized = false;
 	#maximized = false;
 	#minSize = new Vec2(160, 32);
@@ -163,12 +164,13 @@ export class DisplayWindow {
 	}
 
 	public setAnchorEnum(anchor: AnchorPoint) {
-		// TODO validate input
+		if (!isEnumValue(AnchorPoint, anchor))
+			throw new TypeError('Invalid window property value provided - anchor must be a valid AnchorPoint enum');
+
 		const xAnchorSign = anchor == AnchorPoint.TOP_LEFT || anchor == AnchorPoint.BOTTOM_LEFT ? 1 : -1;
 		const yAnchorSign = anchor == AnchorPoint.TOP_LEFT || anchor == AnchorPoint.TOP_RIGHT ? 1 : -1;
 		this.#anchor = new Vec2(xAnchorSign, yAnchorSign);
 	}
-
 	public getAnchorEnum() {
 		if (this.#anchor.x == 1) return this.#anchor.y == 1 ? AnchorPoint.TOP_LEFT : AnchorPoint.BOTTOM_LEFT;
 		if (this.#anchor.x == -1) return this.#anchor.y == 1 ? AnchorPoint.TOP_RIGHT : AnchorPoint.BOTTOM_RIGHT;
@@ -189,6 +191,19 @@ export class DisplayWindow {
 	}
 	public set buttons(buttons: WindowButton[]) {
 		for (const button of buttons ?? []) this.addButton(button);
+	}
+
+	public get editMode() {
+		return this.#editMode;
+	}
+	public setEditMode(mode: WindowEditMode | null) {
+		if (mode && this.editMode && mode != this.editMode) return;
+		if (mode == 'moving' && !this.draggable) return;
+		if (mode == 'resizing' && !this.resizeable) return;
+		if (mode !== 'moving' && this.maximized) return;
+
+		this.#editMode = mode;
+		EventService.dispatchEvent(new WindowModificationEvent(this));
 	}
 
 	public get content() {
@@ -237,17 +252,6 @@ export class DisplayWindow {
 	}
 	private removeChildOnly(dWindow: DisplayWindow) {
 		this.#children = this.#children.filter((child) => child != dWindow);
-	}
-
-	public setEditMode(mode: WindowEditMode = null) {
-		if (mode == 'moving' && !this.draggable) return;
-		if (mode == 'resizing' && !this.resizeable) return;
-		if (this.maximized) {
-			if (mode != 'moving') return;
-			this.maximized = false;
-		}
-
-		this.editMode = mode;
 	}
 
 	public close() {

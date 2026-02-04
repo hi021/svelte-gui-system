@@ -149,16 +149,20 @@ export class WindowService {
 	public handleDragStart(e: MouseEvent, dWindow: DisplayWindow, mode: WindowEditMode) {
 		// TODO handle Center anchor
 
+		console.log('Drag start 1', dWindow.anchor, dWindow.position, e.clientX, e.clientY);
+
 		const offset =
 			mode == 'moving' ?
 				new Vec2(dWindow.anchor.x * dWindow.position.x - e.clientX, dWindow.anchor.y * dWindow.position.y - e.clientY)
 			:	new Vec2(dWindow.anchor.x * dWindow.size.x - e.clientX, dWindow.anchor.y * dWindow.size.y - e.clientY);
 		this.#editingWindow = { dWindow, mode, offset };
+
+		console.log('Drag start 2', offset);
 	}
 
 	public handleDragEnd(e: MouseEvent) {
 		if (this.#editingWindow) {
-			this.#editingWindow.dWindow.editMode = null;
+			this.#editingWindow.dWindow.setEditMode(null);
 			this.#editingWindow = null;
 		}
 	}

@@ -29,12 +29,7 @@
 	console.debug('Mounted window:', dWindow);
 
 	let dWindowElement: HTMLDivElement;
-	let editMode: WindowEditMode = $state(null);
-
-	const setEditMode = (mode: WindowEditMode = null) => {
-		dWindow.setEditMode(mode);
-		editMode = dWindow.editMode;
-	};
+	let editMode = $derived(dWindow.editMode);
 
 	const handleKeyUp = (e: KeyboardEvent) => {
 		const keyAction = KeybindService.getEventKeyAction(e);
@@ -46,14 +41,14 @@
 			case KeyAction.WINDOW_MAXIMIZE:
 				return onmaximize(e);
 			case KeyAction.WINDOW_RESIZE_MOD:
-				return setEditMode();
+				return dWindow.setEditMode(null);
 		}
 	};
 	const handleKeyDown = (e: KeyboardEvent) => {
 		const keyAction = KeybindService.getEventKeyAction(e);
 		switch (keyAction) {
 			case KeyAction.WINDOW_RESIZE_MOD:
-				return setEditMode('resizing');
+				return dWindow.setEditMode('resizing');
 		}
 	};
 
@@ -100,11 +95,9 @@
 	{#if dWindow.layout.shouldRenderTitleBar()}
 		<div
 			class="display-window-titlebar"
-			ondragstart={(e) => console.log(e)}
 			onmousedown={(e) => {
 				const tagName = (e.target as HTMLElement)?.tagName;
 				if (tagName == 'BUTTON' || tagName == 'ICON') return;
-				setEditMode('moving');
 				onmovestart(e);
 			}}
 			ondblclick={onmaximize}
