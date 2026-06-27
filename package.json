@@ -1,7 +1,7 @@
 {
-  "name": "svelte-windowing-system",
+  "name": "svelte-ui-system",
   "version": "0.1.0",
-  "description": "hii",
+  "description": "customizable web-based desktop interface with i18n, audio, and floating windows",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -11,20 +11,20 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "tauri": "tauri"
   },
-  "license": "MIT",
+  "license": "ISC",
   "dependencies": {
-    "@tauri-apps/api": "^2.10.1",
-    "@tauri-apps/plugin-opener": "^2.5.3"
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-opener": "^2.5.4"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.50.2",
-    "@sveltejs/vite-plugin-svelte": "^6.2.4",
-    "@tauri-apps/cli": "^2.10.0",
-    "prettier-plugin-svelte": "^3.4.1",
-    "svelte": "^5.49.1",
-    "svelte-check": "^4.3.6",
-    "typescript": "~5.9.3",
-    "vite": "^7.3.1"
+    "@sveltejs/kit": "^2.68.0",
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
+    "@tauri-apps/cli": "^2.11.3",
+    "prettier-plugin-svelte": "^3.5.2",
+    "svelte": "^5.56.4",
+    "svelte-check": "^4.7.1",
+    "typescript": "~6.0.3",
+    "vite": "^8.1.0"
   }
 }
