@@ -1,7 +1,7 @@
 {
   "name": "svelte-ui-system",
   "version": "0.1.0",
-  "description": "customizable web-based desktop interface with i18n, audio, and floating windows",
+  "description": "Customizable web-based desktop interface library with i18n, audio, and floating windows",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
