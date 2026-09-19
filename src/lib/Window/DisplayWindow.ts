@@ -1,6 +1,7 @@
 import { EventService } from '$lib/Event/EventService';
 import { WindowModificationEvent } from '$lib/Event/WindowModificationEvent';
 import { PredicateMode } from '$lib/Util/PredicateMode';
+import { isEnumValue } from '$lib/Util/Util';
 import { Vec4 } from '$lib/Util/Vec4';
 import { WindowService } from '$lib/Window/WindowService';
 import type { Snippet } from 'svelte';
@@ -8,7 +9,6 @@ import { Vec2 } from '../Util/Vec2';
 import { AnchorPoint } from './AnchorPoint';
 import { WindowButton } from './Button/WindowButton';
 import { WindowLayout } from './WindowLayout';
-import { isEnumValue } from '$lib/Util/Util';
 
 export type WindowEditMode = 'moving' | 'resizing' | null;
 
@@ -86,6 +86,12 @@ export class DisplayWindow {
 		this.#maximized = maximized;
 
 		EventService.dispatchEvent(new WindowModificationEvent(this));
+	}
+
+	public get windowState() {
+		if(this.minimized) return 'minimized';
+		if(this.maximized) return 'maximized';
+		return 'normal';
 	}
 
 	public get size() {

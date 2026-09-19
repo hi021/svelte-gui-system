@@ -82,6 +82,7 @@
 	class="display-window-container unselectable"
 	data-window-class={dWindow.objectClass}
 	data-edit-mode={editMode}
+	data-window-state={dWindow.windowState}
 	draggable="false"
 	style={dWindow.css}
 	tabindex="0"

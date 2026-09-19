@@ -12,17 +12,17 @@
 .display-window-container {
 	position: fixed;
 	width: var(--w);
-
 	display: flex;
 	flex-direction: column;
-
-	border-radius: var(--border-radius);
 	background-color: var(--color-darkish);
 	overflow: hidden;
 	z-index: var(--z-index);
 }
 .display-window-container[data-edit-mode='resizing'] {
 	cursor: nesw-resize;
+}
+.display-window-container:not([data-window-state='maximized']) {
+	border-radius: var(--border-radius);
 }
 
 .display-window-titlebar {
