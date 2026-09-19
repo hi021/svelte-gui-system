@@ -30,12 +30,13 @@
 	justify-content: space-between;
 	gap: 10px;
 	padding: 6px;
-	background-color: var(--color-dark);
+	background: linear-gradient(166deg, color-mix(in srgb, var(--color-dark) 10%, transparent), color-mix(in srgb, var(--color-dark) 100%, transparent))
 }
 .display-window-title {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
+	font-size: 0.875rem;
 }
 .display-window-titlebar-btn-container {
 	display: flex;
@@ -59,3 +60,7 @@
 	display: flex;
 	gap: 10px;
 }
+
+/* .display-window-titlebar-btn-container > button {
+	background-color: color-mix(in srgb, var(--color-dark) 60%, transparent);
+} */

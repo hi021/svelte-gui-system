@@ -63,8 +63,8 @@
 </script>
 
 <!-- TODO: finish z-index layer ordering shenanigans -->
-<!-- TODO: fix window not snapping to cursor when leaving maximized -->
-<!-- TODO: prevent window height going below button container height unless minimized -->
+<!-- TODO!: fix window not snapping to cursor when leaving maximized -->
+<!-- TODO?: prevent window height going below button container height unless minimized -->
 <!-- TODO: block tabindex from venturing outside of current window - especially if it's a window with a backdrop -->
 
 {#if dWindow.backdropVisible}
@@ -105,7 +105,7 @@
 			role="contentinfo">
 			<span class="display-window-title">{dWindow.title}</span>
 			{#if dWindow.layout.shouldRenderTitleBarButtonContainer()}
-				<span class="display-window-titlebar-btn-container"  ondblclick={(e) => e.stopPropagation()} role="group">
+				<span class="display-window-titlebar-btn-container" ondblclick={(e) => e.stopPropagation()} role="group">
 					{#if dWindow.layout.minimizeButton}
 						<button class="display-window-minimize-btn btn-icon" onclick={(e) => { e.stopPropagation(); onminimize(e);}} title="Minimize"
 							><icon class="minimize"></icon></button>
@@ -124,7 +124,7 @@
 	{/if}
 
 	{#if !dWindow.minimized}
-		<div class="display-window-content-wrapper" transition:slide={{ duration: 150 }}>
+		<div class="display-window-content-wrapper" transition:slide|global={{ duration: 150 }}>
 			<div class="display-window-content">
 				{@render dWindow.content(dWindow.props)}
 			</div>

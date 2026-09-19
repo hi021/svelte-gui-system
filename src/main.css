@@ -35,6 +35,10 @@ body {
 	color: var(--color-lighter);
 }
 
+.btn-icon {
+	line-height: 0;
+}
+
 .unselectable {
 	-webkit-user-drag: none;
 	user-select: none;

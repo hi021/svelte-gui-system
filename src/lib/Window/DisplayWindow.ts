@@ -32,7 +32,7 @@ export class DisplayWindow {
 	#editMode: WindowEditMode = null;
 	#minimized = false;
 	#maximized = false;
-	#minSize = new Vec2(160, 32);
+	#minSize = new Vec2(160, 31.33);
 	#maxSize: Vec2 | undefined;
 	#anchor = new Vec2(1, 1); // x = 1 -> left, x = -1 -> right; y = 1 -> top, y = -1 -> bottom (see getAnchorEnum())
 	#zIndex = WindowService.DEFAULT_Z_INDEX;
@@ -91,7 +91,7 @@ export class DisplayWindow {
 	public get windowState() {
 		if(this.minimized) return 'minimized';
 		if(this.maximized) return 'maximized';
-		return 'normal';
+		return 'default';
 	}
 
 	public get size() {

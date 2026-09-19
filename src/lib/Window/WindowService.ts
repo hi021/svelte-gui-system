@@ -68,7 +68,6 @@ export class WindowService {
 		return this.#focusedWindow;
 	}
 
-	// TODO: Would be fun to compare the performance of this vs normal for loop - probably doesn't matter for 100 windows
 	private get topZIndex() {
 		return this.#windowsByZIndex.size ? Math.max(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
 	}

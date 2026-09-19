@@ -152,7 +152,7 @@
 			}} />
 	{/each}
 
-	<div class="btn-container unselectable" style="width: fit-content; background-color: rgba(255,255,255,0.25);">
+	<div class="btn-container unselectable" style="width: fit-content; background-color: rgba(255,255,255,0.25); z-index: 99;">
 		<div class="row">
 			<button onclick={() => longAudio.play()}> Play </button>
 			<button onclick={() => longAudio.pause()}> Pause </button>
@@ -225,9 +225,3 @@
 		</form>
 	</div>
 </main>
-
-<style>
-	.btn-container {
-		z-index: 99;
-	}
-</style>
