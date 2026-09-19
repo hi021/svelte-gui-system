@@ -1,11 +1,10 @@
 <script lang="ts">
-	import type { DisplayWindow, WindowEditMode } from './DisplayWindow';
-	import { KeybindService } from '$lib/Keybind/KeybindService';
-	import { fade, scale, slide } from 'svelte/transition';
-	import { onDestroy, onMount } from 'svelte';
 	import { KeyAction } from '$lib/Keybind/KeyActionEnum';
+	import { KeybindService } from '$lib/Keybind/KeybindService';
+	import { onDestroy, onMount } from 'svelte';
+	import { fade, scale, slide } from 'svelte/transition';
 	import WindowButton from './Button/WindowButtonComponent.svelte';
-	import { preventDefault } from 'svelte/legacy';
+	import type { DisplayWindow } from './DisplayWindow';
 
 	let {
 		dWindow,
@@ -105,8 +104,7 @@
 			role="contentinfo">
 			<span class="display-window-title">{dWindow.title}</span>
 			{#if dWindow.layout.shouldRenderTitleBarButtonContainer()}
-				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<span class="display-window-titlebar-btn-container"  ondblclick={(e) => e.stopPropagation()}>
+				<span class="display-window-titlebar-btn-container"  ondblclick={(e) => e.stopPropagation()} role="group">
 					{#if dWindow.layout.minimizeButton}
 						<button class="display-window-minimize-btn btn-icon" onclick={(e) => { e.stopPropagation(); onminimize(e);}} title="Minimize"
 							><icon class="minimize"></icon></button>
