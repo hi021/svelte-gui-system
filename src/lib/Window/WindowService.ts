@@ -148,7 +148,7 @@ export class WindowService {
 	public handleDragStart(e: MouseEvent, dWindow: DisplayWindow, mode: WindowEditMode) {
 		// TODO handle Center anchor
 
-		console.log('Drag start 1', dWindow.anchor, dWindow.position, e.clientX, e.clientY);
+		console.log('Drag start 1', dWindow.anchor, dWindow.position, e.clientX, e.clientY); //TODO: DEBUG ONLY - remove
 
 		const offset =
 			mode == 'moving' ?
@@ -156,7 +156,7 @@ export class WindowService {
 			:	new Vec2(dWindow.anchor.x * dWindow.size.x - e.clientX, dWindow.anchor.y * dWindow.size.y - e.clientY);
 		this.#editingWindow = { dWindow, mode, offset };
 
-		console.log('Drag start 2', offset);
+		console.log('Drag start 2', offset); //TODO: DEBUG ONLY - remove
 	}
 
 	public handleDragEnd(e: MouseEvent) {
@@ -175,11 +175,12 @@ export class WindowService {
 				(dWindow.position.x = dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x)),
 				(dWindow.position.y = dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y))
 			);
-		} else
+		} else {
 			dWindow.setSize(
 				dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x),
 				dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y)
 			);
+		}
 
 		this.updateWindowsStore();
 	}

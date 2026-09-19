@@ -30,6 +30,28 @@
 
 	let dWindowElement: HTMLDivElement;
 	let editMode = $derived(dWindow.editMode);
+	let pendingMove = false;
+
+	function cancelPendingMove() {
+		pendingMove = false;
+		document.removeEventListener('mousemove', handlePendingMove);
+		document.removeEventListener('mouseup', cancelPendingMove);
+	}
+
+	function handlePendingMove(e: MouseEvent) {
+		if (!pendingMove) return;
+
+		cancelPendingMove();
+		onmovestart(e);
+	}
+
+	function beginPendingMove(e: MouseEvent) {
+		if (e.button != 0) return;
+
+		pendingMove = true;
+		document.addEventListener('mousemove', handlePendingMove);
+		document.addEventListener('mouseup', cancelPendingMove);
+	}
 
 	const handleKeyUp = (e: KeyboardEvent) => {
 		const keyAction = KeybindService.getEventKeyAction(e);
@@ -59,11 +81,11 @@
 	onDestroy(() => {
 		dWindowElement.removeEventListener('keyup', handleKeyUp);
 		dWindowElement.removeEventListener('keydown', handleKeyDown);
+		cancelPendingMove();
 	});
 </script>
 
 <!-- TODO: finish z-index layer ordering shenanigans -->
-<!-- TODO!: fix window not snapping to cursor when leaving maximized -->
 <!-- TODO?: prevent window height going below button container height unless minimized -->
 <!-- TODO: block tabindex from venturing outside of current window - especially if it's a window with a backdrop -->
 
@@ -96,16 +118,12 @@
 	{#if dWindow.layout.shouldRenderTitleBar()}
 		<div
 			class="display-window-titlebar"
-			onmousedown={(e) => {
-				const tagName = (e.target as HTMLElement)?.tagName;
-				if (tagName == 'BUTTON' || tagName == 'ICON') return;
-				onmovestart(e);
-			}}
+			onmousedown={beginPendingMove}
 			ondblclick={onmaximize}
 			role="contentinfo">
 			<span class="display-window-title">{dWindow.title}</span>
 			{#if dWindow.layout.shouldRenderTitleBarButtonContainer()}
-				<span class="display-window-titlebar-btn-container" ondblclick={(e) => e.stopPropagation()} role="group">
+				<span class="display-window-titlebar-btn-container" ondblclick={(e) => e.stopPropagation()} onmousedown={(e) => e.stopPropagation()} role="group">
 					{#if dWindow.layout.minimizeButton}
 						<button class="display-window-minimize-btn btn-icon" onclick={(e) => { e.stopPropagation(); onminimize(e);}} title="Minimize"
 							><icon class="minimize"></icon></button>
