@@ -89,8 +89,8 @@ export class DisplayWindow {
 	}
 
 	public get windowState() {
-		if(this.minimized) return 'minimized';
-		if(this.maximized) return 'maximized';
+		if (this.minimized) return 'minimized';
+		if (this.maximized) return 'maximized';
 		return 'default';
 	}
 

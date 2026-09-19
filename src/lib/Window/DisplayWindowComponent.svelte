@@ -116,25 +116,40 @@
 	}}
 	role="dialog">
 	{#if dWindow.layout.shouldRenderTitleBar()}
-		<div
-			class="display-window-titlebar"
-			onmousedown={beginPendingMove}
-			ondblclick={onmaximize}
-			role="contentinfo">
+		<div class="display-window-titlebar" onmousedown={beginPendingMove} ondblclick={onmaximize} role="contentinfo">
 			<span class="display-window-title">{dWindow.title}</span>
 			{#if dWindow.layout.shouldRenderTitleBarButtonContainer()}
-				<span class="display-window-titlebar-btn-container" ondblclick={(e) => e.stopPropagation()} onmousedown={(e) => e.stopPropagation()} role="group">
+				<span
+					class="display-window-titlebar-btn-container"
+					ondblclick={(e) => e.stopPropagation()}
+					onmousedown={(e) => e.stopPropagation()}
+					role="group">
 					{#if dWindow.layout.minimizeButton}
-						<button class="display-window-minimize-btn btn-icon" onclick={(e) => { e.stopPropagation(); onminimize(e);}} title="Minimize"
-							><icon class="minimize"></icon></button>
+						<button
+							class="display-window-minimize-btn btn-icon"
+							onclick={(e) => {
+								e.stopPropagation();
+								onminimize(e);
+							}}
+							title="Minimize"><icon class="minimize"></icon></button>
 					{/if}
 					{#if dWindow.layout.maximizeButton}
-						<button class="display-window-maximize-btn btn-icon" onclick={(e) => { e.stopPropagation(); onmaximize(e);}} title="Maximize"
-							><icon class="maximize"></icon></button>
+						<button
+							class="display-window-maximize-btn btn-icon"
+							onclick={(e) => {
+								e.stopPropagation();
+								onmaximize(e);
+							}}
+							title="Maximize"><icon class="maximize"></icon></button>
 					{/if}
 					{#if dWindow.layout.closeButton}
-						<button class="display-window-close-btn btn-icon" onclick={(e) => { e.stopPropagation(); onclose(e);}} title="Close"
-							><icon class="add rot-45"></icon></button>
+						<button
+							class="display-window-close-btn btn-icon"
+							onclick={(e) => {
+								e.stopPropagation();
+								onclose(e);
+							}}
+							title="Close"><icon class="add rot-45"></icon></button>
 					{/if}
 				</span>
 			{/if}

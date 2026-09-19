@@ -30,7 +30,11 @@
 	justify-content: space-between;
 	gap: 10px;
 	padding: 6px;
-	background: linear-gradient(166deg, color-mix(in srgb, var(--color-dark) 10%, transparent), color-mix(in srgb, var(--color-dark) 100%, transparent))
+	background: linear-gradient(
+		166deg,
+		color-mix(in srgb, var(--color-dark) 10%, transparent),
+		color-mix(in srgb, var(--color-dark) 100%, transparent)
+	);
 }
 .display-window-title {
 	text-overflow: ellipsis;

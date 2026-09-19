@@ -91,7 +91,8 @@
 		buttons: [clickableBtn]
 	});
 	windowManager.createWindow({
-		content: customContent
+		content: senkoPogContent,
+		anchor: AnchorPoint.TOP_RIGHT
 	});
 
 	function playSenko() {
@@ -108,7 +109,7 @@
 	{/key}
 {/snippet}
 
-{#snippet customContent()}
+{#snippet senkoPogContent()}
 	<img
 		class="unselectable"
 		src="https://poggers.ltd/static/media/senko-poggers.ad2cb0b444bab5076f61.png"
@@ -128,7 +129,7 @@
 <main class="container" style="display: flex; flex-direction: column; flex: 1 1 auto;">
 	<h1 style="width: 100%; text-align:center;">${gameState.money}</h1>
 
-	<!-- TODO: Probably want that in a separate container component -->
+	<!-- TODO: Probably want this in a separate container component -->
 	{#each windows as dWindow}
 		<DisplayWindow
 			{dWindow}
@@ -143,16 +144,19 @@
 
 				if (dWindow.maximized) {
 					dWindow.maximized = false;
-					dWindow.position = new Vec2(100, 200); // TODO OFFSET
+					// TODO: handle anchors! - snaps to bottom for bottom anchors, and won't work with center anchors either
+					dWindow.position = new Vec2(dWindow.anchor.x * (e.clientX - dWindow.size.x / 2), 0);
 				}
 				windowManager.handleDragStart(e, dWindow, dWindow.editMode);
 			}}
 			onresizestart={(e: MouseEvent) => {
-				dWindow.editMode == 'resizing' && windowManager.handleDragStart(e, dWindow, dWindow.editMode);
+				dWindow.editMode === 'resizing' && windowManager.handleDragStart(e, dWindow, dWindow.editMode);
 			}} />
 	{/each}
 
-	<div class="btn-container unselectable" style="width: fit-content; background-color: rgba(255,255,255,0.25); z-index: 99;">
+	<div
+		class="btn-container unselectable"
+		style="width: fit-content; background-color: rgba(255,255,255,0.25); z-index: 99;">
 		<div class="row">
 			<button onclick={() => longAudio.play()}> Play </button>
 			<button onclick={() => longAudio.pause()}> Pause </button>

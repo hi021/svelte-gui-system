@@ -67,6 +67,9 @@ export class WindowService {
 	public get focusedWindow() {
 		return this.#focusedWindow;
 	}
+	public get editingWindow() {
+		return this.#editingWindow;
+	}
 
 	private get topZIndex() {
 		return this.#windowsByZIndex.size ? Math.max(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
@@ -172,8 +175,8 @@ export class WindowService {
 
 		if (this.#editingWindow.mode == 'moving') {
 			dWindow.setPosition(
-				(dWindow.position.x = dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x)),
-				(dWindow.position.y = dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y))
+				dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x),
+				dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y)
 			);
 		} else {
 			dWindow.setSize(
