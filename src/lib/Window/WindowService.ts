@@ -1,12 +1,11 @@
 import { EventService } from '$lib/Event/EventService';
-import type { Snippet } from 'svelte';
+import type { FieldsOnly } from '$lib/Util/Util';
 import { writable } from 'svelte/store';
 import { PredicateMode } from '../Util/PredicateMode';
 import { Vec2 } from '../Util/Vec2';
 import { AnchorPoint } from './AnchorPoint';
-import type { WindowButton } from './Button/WindowButton';
 import { DisplayWindow, type WindowEditMode } from './DisplayWindow';
-import type { WindowLayout } from './WindowLayout';
+import { WindowLayout } from './WindowLayout';
 
 type EditingWindow = {
 	dWindow: DisplayWindow;
@@ -14,29 +13,12 @@ type EditingWindow = {
 	mode: WindowEditMode;
 };
 
-type CreateWindowParams = {
-	objectClass?: string;
-	title?: string;
-	layout?: WindowLayout;
-	position?: Vec2;
-	minimizable?: boolean;
-	maximizable?: boolean;
-	resizeable?: boolean;
-	draggable?: boolean;
-	alwaysOnTop?: boolean;
-	focused?: boolean;
-	minimized?: boolean;
-	maximized?: boolean;
-	backdropVisible?: boolean;
-	customContainerStyle?: string;
-	props?: Record<string, any>;
-	parent?: DisplayWindow;
-	children?: DisplayWindow[];
-	size?: Vec2;
-	anchor?: AnchorPoint;
-	buttons?: WindowButton[];
-	content: Snippet<[Record<string, any> | undefined]>;
-};
+export type CreateWindowParams = Partial<
+	FieldsOnly<
+		Omit<DisplayWindow, 'anchor' | 'css' | 'editMode' | 'id' | 'positioningCss' | 'sizeCss' | 'windowState' | 'zIndex'>
+	>
+> &
+	Pick<DisplayWindow, 'content'> & { anchor?: AnchorPoint };
 
 export class WindowService {
 	static readonly MAX_WINDOWS = 128;
@@ -151,7 +133,7 @@ export class WindowService {
 	public handleDragStart(e: MouseEvent, dWindow: DisplayWindow, mode: WindowEditMode) {
 		// TODO handle Center anchor
 
-		console.log('Drag start 1', dWindow.anchor, dWindow.position, e.clientX, e.clientY); //TODO: DEBUG ONLY - remove
+		console.debug('Drag start 1', dWindow.anchor, dWindow.position, e.clientX, e.clientY); //TODO: DEBUG ONLY - remove
 
 		const offset =
 			mode == 'moving' ?
@@ -159,7 +141,7 @@ export class WindowService {
 			:	new Vec2(dWindow.anchor.x * dWindow.size.x - e.clientX, dWindow.anchor.y * dWindow.size.y - e.clientY);
 		this.#editingWindow = { dWindow, mode, offset };
 
-		console.log('Drag start 2', offset); //TODO: DEBUG ONLY - remove
+		console.debug('Drag start 2', offset); //TODO: DEBUG ONLY - remove
 	}
 
 	public handleDragEnd(e: MouseEvent) {
@@ -173,7 +155,7 @@ export class WindowService {
 		if (!this.#editingWindow?.dWindow) return;
 		const dWindow = this.#editingWindow.dWindow;
 
-		if (this.#editingWindow.mode == 'moving') {
+		if (this.#editingWindow.mode === 'moving') {
 			dWindow.setPosition(
 				dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x),
 				dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y)
@@ -222,7 +204,6 @@ export class WindowService {
 
 		if (options.title) dWindow.title = options.title;
 		if (options.objectClass) dWindow.objectClass = options.objectClass;
-		if (options.layout) dWindow.layout = options.layout;
 		if (options.position) dWindow.position = options.position;
 		if (options.minimizable != null) dWindow.minimizable = options.minimizable;
 		if (options.maximizable != null) dWindow.maximizable = options.maximizable;
@@ -233,13 +214,15 @@ export class WindowService {
 		if (options.minimized != null) dWindow.minimized = options.minimized;
 		if (options.maximized != null) dWindow.maximized = options.maximized;
 		if (options.backdropVisible != null) dWindow.backdropVisible = options.backdropVisible;
-		if (options.customContainerStyle) dWindow.customContainerStyle = options.customContainerStyle;
+		if (options.windowContainerCss) dWindow.windowContainerCss = options.windowContainerCss;
+		if (options.contentContainerCss) dWindow.contentContainerCss = options.contentContainerCss;
 		if (options.props) dWindow.props = options.props;
 		if (options.size) dWindow.size = options.size;
 		if (options.anchor) dWindow.setAnchorEnum(options.anchor);
 		if (options.buttons) dWindow.buttons = options.buttons;
 		if (options.parent != null) dWindow.setParent(options.parent);
 		if (options.children?.length) dWindow.addChildren(options.children);
+		dWindow.layout = options.layout ? options.layout : this.generateDefaultWindowLayout(dWindow);
 
 		this.registerWindow(dWindow);
 	}
@@ -256,6 +239,14 @@ export class WindowService {
 		if (dWindow.focused) this.focusWindow(dWindow);
 		if (dWindow.alwaysOnTop) this.#windowsOnTop.add(dWindow.id);
 		this.setWindowsMap(dWindow);
+	}
+
+	private generateDefaultWindowLayout(dWindow: DisplayWindow) {
+		return new WindowLayout({
+			maximizeButton: dWindow.maximizable,
+			minimizeButton: dWindow.minimizable,
+			title: !!dWindow.title
+		});
 	}
 
 	private setWindowsMap(dWindow: DisplayWindow) {

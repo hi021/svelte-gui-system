@@ -17,7 +17,7 @@
 	import { DisplayWindow as DWindow } from '$lib/Window/DisplayWindow';
 	import DisplayWindow from '$lib/Window/DisplayWindowComponent.svelte';
 	import { NotificationWindow } from '$lib/Window/Templates/NotificationWindow';
-	import { WindowService } from '$lib/Window/WindowService';
+	import { WindowService, type CreateWindowParams } from '$lib/Window/WindowService';
 	import { onDestroy } from 'svelte';
 
 	let finderInputText: string;
@@ -25,18 +25,24 @@
 
 	const v1 = new Vec2(300, 300);
 	const v2 = new Vec2(300, 300);
-	const button = new WindowButton();
-	button.action = (e, dWindow) => (dWindow.backdropVisible = !dWindow.backdropVisible);
-	button.text = 'Toggle backdrop idk man';
+	const alwaysOnTopBtn = new WindowButton();
+	alwaysOnTopBtn.action = (e, dWindow) => {
+		dWindow.backdropVisible = !dWindow.backdropVisible;
+		dWindow.forceRefreshAllWindows();
+	};
+	alwaysOnTopBtn.text = 'Toggle backdrop idk man';
 
-	const alwaysOnTopWindowParams = {
+	const alwaysOnTopWindowParams: CreateWindowParams = {
 		title: 'TOP',
-		customContainerStyle: `background-color: ${new Color(ColorEnum.INFO)};`,
+		windowContainerCss: `background-color: ${new Color(ColorEnum.SUCCESS)};`,
+		contentContainerCss: `background-color: ${new Color(ColorEnum.WARNING)};`,
 		size: v2,
 		alwaysOnTop: true,
+		minimizable: false,
+		maximizable: false,
 		content: content,
 		props: { text: 'New dupa' },
-		buttons: [button]
+		buttons: [alwaysOnTopBtn]
 	};
 
 	const gameState = new GameState();
@@ -61,7 +67,6 @@
 
 	windowManager.createWindow({
 		title: 'Notif!',
-		customContainerStyle: 'background-color: #33aa55;',
 		position: v1,
 		content: content,
 		props: { text: 'This is prop text :)' }
@@ -102,17 +107,18 @@
 
 <!-- EXAMPLE WINDOW CONTENT - CAN BE MOVED TO SEPARATE .SVELTE COMPONENTS (see Window/Contents) -->
 {#snippet clickable(props?: { toClick?: GameState })}
-	{#key props?.toClick}
-		<p>
-			Current cliccy: {props?.toClick?.money}
-		</p>
-	{/key}
+	<p>
+		Current cliccy: {props?.toClick?.money}
+	</p>
+	<p>Paragraph no. 2 hello!</p>
+	<input type="text" value="Wowww this window extends so farrr">
+	<p>wouldn't it suck if the overflow:auto broke?</p>
 {/snippet}
 
 {#snippet senkoPogContent()}
 	<img
 		class="unselectable"
-		src="https://poggers.ltd/static/media/senko-poggers.ad2cb0b444bab5076f61.png"
+		src="https://poggers.moe/static/media/senko-poggers.ad2cb0b444bab5076f61.png"
 		alt="POGGERS"
 		style="position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%;" />
 	<button
@@ -144,7 +150,7 @@
 
 				if (dWindow.maximized) {
 					dWindow.maximized = false;
-					// TODO: handle anchors! - snaps to bottom for bottom anchors, and won't work with center anchors either
+					// TODO!: handle anchors! - snaps to bottom for bottom anchors, and won't work with center anchors either
 					dWindow.position = new Vec2(dWindow.anchor.x * (e.clientX - dWindow.size.x / 2), 0);
 				}
 				windowManager.handleDragStart(e, dWindow, dWindow.editMode);

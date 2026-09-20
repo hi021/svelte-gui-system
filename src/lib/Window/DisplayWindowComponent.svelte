@@ -115,10 +115,10 @@
 		onresizestart(e);
 	}}
 	role="dialog">
-	{#if dWindow.layout.shouldRenderTitleBar()}
+	{#if dWindow.layout.fullTitleBar}
 		<div class="display-window-titlebar" onmousedown={beginPendingMove} ondblclick={onmaximize} role="contentinfo">
 			<span class="display-window-title">{dWindow.title}</span>
-			{#if dWindow.layout.shouldRenderTitleBarButtonContainer()}
+			{#if dWindow.layout.titleBarButtons}
 				<span
 					class="display-window-titlebar-btn-container"
 					ondblclick={(e) => e.stopPropagation()}
@@ -157,13 +157,16 @@
 	{/if}
 
 	{#if !dWindow.minimized}
-		<div class="display-window-content-wrapper" transition:slide|global={{ duration: 150 }}>
+		<div
+			class="display-window-content-wrapper scrollbar-dark"
+			style={dWindow.contentContainerCss}
+			transition:slide|global={{ duration: 150 }}>
 			<div class="display-window-content">
 				{@render dWindow.content(dWindow.props)}
 			</div>
 
 			{#if dWindow.buttons?.length}
-				<div class="display-window-button-container {dWindow.layout.getButtonContainerClass()}">
+				<div class="display-window-button-container {dWindow.layout.buttonContainerClass}">
 					{#each dWindow.buttons as button}
 						<WindowButton {dWindow} {button} />
 					{/each}

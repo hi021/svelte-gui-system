@@ -23,7 +23,8 @@ export class DisplayWindow {
 	public alwaysOnTop = false;
 	public focused = true;
 	public backdropVisible = false;
-	public customContainerStyle = '';
+	public windowContainerCss = '';
+	public contentContainerCss = '';
 	public props?: Record<string, any>;
 	#id = 0;
 	#size = new Vec2(600, 400);
@@ -299,7 +300,7 @@ export class DisplayWindow {
     --border-radius: ${this.layout.borderRadius}px;
     --padding: ${this.layout.padding}px;
     --z-index: ${this.zIndex};
-    ${this.customContainerStyle}`;
+    ${this.windowContainerCss}`;
 	}
 
 	public setButtons(buttons: WindowButton[]) {
@@ -309,6 +310,10 @@ export class DisplayWindow {
 
 	public addButton(button: WindowButton) {
 		this.#buttons.push(button.clone());
+	}
+
+	public forceRefreshAllWindows() {
+		EventService.dispatchEvent(new WindowModificationEvent(this));
 	}
 
 	public matchesPredicates(predicates: Partial<{ [K in keyof this]: this[K] }>, mode: PredicateMode) {

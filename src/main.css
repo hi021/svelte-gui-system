@@ -14,11 +14,11 @@
 	--color-primary: oklch(36% 0.17 300);
 	--color-secondary: oklch(80% 0.1 300);
 	--color-tertiary: oklch(60% 0.17 355);
+	/* --color-claret: oklch(42% 0.17 355); */
 	--color-error: oklch(57% 0.17 25);
 	--color-warning: oklch(80% 0.17 70);
 	--color-success: oklch(55% 0.17 150);
 	--color-info: oklch(55% 0.17 255);
-	/* --color-claret: oklch(42% 0.17 355); */
 
 	color-scheme: dark;
 	font-family: 'Noto Sans', system-ui, sans-serif;
@@ -35,6 +35,16 @@ body {
 	color: var(--color-lighter);
 }
 
+button {
+	background-color: color-mix(in srgb, var(--color-darker) 75%, transparent);
+	border: none;
+	border-radius: 4px;
+	color: inherit;
+	font: inherit;
+}
+button:hover {
+	background-color: var(--color-darker);
+}
 .btn-icon {
 	line-height: 0;
 }
@@ -70,4 +80,43 @@ body {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
+}
+
+.scrollbar-dark::-webkit-scrollbar,
+.scrollbar-small::-webkit-scrollbar {
+	display: initial;
+}
+.scrollbar-dark::-webkit-scrollbar-button,
+.scrollbar-small::-webkit-scrollbar-button {
+	display: none;
+}
+
+.scrollbar-small::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+.scrollbar-small::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 999px;
+}
+.scrollbar-small::-webkit-scrollbar-thumb {
+	background: rgba(0, 0, 0, 0.3);
+	border-radius: 999px;
+}
+.scrollbar-small::-webkit-scrollbar-thumb:hover {
+	background: rgba(0, 0, 0, 0.4);
+}
+
+.scrollbar-dark::-webkit-scrollbar {
+	width: 14px;
+	height: 14px;
+}
+.scrollbar-dark::-webkit-scrollbar-track {
+	background: var(--color-dark);
+}
+.scrollbar-dark::-webkit-scrollbar-thumb {
+	background: #222;
+}
+.scrollbar-dark::-webkit-scrollbar-thumb:hover {
+	background: #333;
 }

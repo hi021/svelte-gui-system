@@ -1,3 +1,4 @@
+import type { FieldsOnly } from '$lib/Util/Util';
 import { ButtonLayout } from './Button/ButtonLayout';
 
 export class WindowLayout {
@@ -9,15 +10,38 @@ export class WindowLayout {
 	public borderRadius = 8; //px
 	public padding = 8; //px
 
-	public shouldRenderTitleBar() {
-		return this.shouldRenderTitleBarButtonContainer() || this.title;
+	public constructor(
+		options?: Partial<FieldsOnly<Omit<WindowLayout, 'fullTitleBar' | 'titleBarButtons' | 'buttonContainerClass'>>>
+	) {
+		if (!options) return;
+
+		this.title = options.title ?? true;
+		this.minimizeButton = options.minimizeButton ?? true;
+		this.maximizeButton = options.maximizeButton ?? true;
+		this.closeButton = options.closeButton ?? true;
+		this.buttonLayout = options.buttonLayout ?? ButtonLayout.EVENLY_SPACED;
+		this.borderRadius = options.borderRadius ?? 8;
+		this.padding = options.padding ?? 8;
 	}
 
-	public shouldRenderTitleBarButtonContainer() {
+	public get fullTitleBar() {
+		return this.titleBarButtons || this.title;
+	}
+	public set fullTitleBar(value: boolean) {
+		this.titleBarButtons = value;
+		this.title = value;
+	}
+
+	public get titleBarButtons() {
 		return this.closeButton || this.minimizeButton || this.maximizeButton;
 	}
+	public set titleBarButtons(value: boolean) {
+		this.closeButton = value;
+		this.minimizeButton = value;
+		this.maximizeButton = value;
+	}
 
-	public getButtonContainerClass() {
+	public get buttonContainerClass() {
 		switch (this.buttonLayout) {
 			case ButtonLayout.CENTERED:
 				return 'flex-centered';
