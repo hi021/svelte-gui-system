@@ -5,9 +5,10 @@
 	import { AudioService } from './AudioService';
 	import { MediaState } from './MediaState';
 
-	let { audioManager }: { audioManager: AudioService } = $props();
+	const { audioManager }: { audioManager: AudioService } = $props();
+	// svelte-ignore non_reactive_update
 	let audioObjects: AudioObject[] = [];
-	const audioObjectsUnsubscriber = audioManager.audioObjects.subscribe((value) => (audioObjects = value));
+	const audioObjectsUnsubscriber = (() => audioManager.audioObjects.subscribe((value) => (audioObjects = value)))();
 	onDestroy(() => {
 		audioObjectsUnsubscriber();
 	});

@@ -3,8 +3,6 @@
 	import { AudioService } from '$lib/Audio/AudioService';
 	import { Color } from '$lib/Color/Color';
 	import { ColorEnum } from '$lib/Color/ColorEnum';
-	import { EventService } from '$lib/Event/EventService';
-	import { WindowCloseEvent } from '$lib/Event/WindowCloseEvent';
 	import { GameState } from '$lib/GameState.svelte';
 	import { PredicateMode } from '$lib/Util/PredicateMode';
 	import { Vec2 } from '$lib/Util/Vec2';
@@ -14,24 +12,27 @@
 	import { ButtonLayout } from '$lib/Window/Button/ButtonLayout';
 	import { WindowButton } from '$lib/Window/Button/WindowButton';
 	import { content } from '$lib/Window/Contents/Templates/NotificationTemplate.svelte';
-	import { DisplayWindow as DWindow } from '$lib/Window/DisplayWindow';
-	import DisplayWindow from '$lib/Window/DisplayWindowComponent.svelte';
+	import DisplayWindowComponentContainer from '$lib/Window/DisplayWindowComponentContainer.svelte';
 	import { NotificationWindow } from '$lib/Window/Templates/NotificationWindow';
 	import { WindowService, type CreateWindowParams } from '$lib/Window/WindowService';
-	import { onDestroy } from 'svelte';
 
 	let finderInputText: string;
 	let factoryInputText: string;
 
+	const gameState = new GameState();
+	const windowManager = new WindowService();
+	const audioManager = new AudioService();
+
+	// -------------------------------- Showcase windows init
 	const v1 = new Vec2(300, 300);
 	const v2 = new Vec2(300, 300);
+
 	const alwaysOnTopBtn = new WindowButton();
 	alwaysOnTopBtn.action = (e, dWindow) => {
 		dWindow.backdropVisible = !dWindow.backdropVisible;
 		dWindow.forceRefreshAllWindows();
 	};
 	alwaysOnTopBtn.text = 'Toggle backdrop idk man';
-
 	const alwaysOnTopWindowParams: CreateWindowParams = {
 		title: 'TOP',
 		windowContainerCss: `background-color: ${new Color(ColorEnum.SUCCESS)};`,
@@ -45,44 +46,20 @@
 		buttons: [alwaysOnTopBtn]
 	};
 
-	const gameState = new GameState();
-	const windowManager = new WindowService();
-	const audioManager = new AudioService();
-
-	audioManager.registerAudioObject('/poggers.mp3', 'poggers');
-	const longAudio = audioManager.registerAudioObject('/sewer.mp3', 'sewer', false);
-
-	const handleDrag = (e: MouseEvent) => windowManager.handleDrag(e);
-	const handleDragEnd = (e: MouseEvent) => windowManager.handleDragEnd(e);
-	document.addEventListener('mousemove', handleDrag);
-	document.addEventListener('mouseup', handleDragEnd);
-
-	let windows: DWindow[] = [];
-	const windowsUnsubscriber = windowManager.windows.subscribe((value) => (windows = value));
-	onDestroy(() => {
-		windowsUnsubscriber();
-		document.removeEventListener('mousemove', handleDrag);
-		document.removeEventListener('mouseup', handleDragEnd);
-	});
-
-	windowManager.createWindow({
+	const testWindow1 = windowManager.createWindow({
 		title: 'Notif!',
 		position: v1,
 		content: content,
 		props: { text: 'This is prop text :)' }
 	});
-	// windowManager.createWindow({
-	// 	title:
-	// 		"veeeery looooong title that I haave to pad somehow, so anyway what's up? how you doing? the kids? yeah, I ate them. Or I mean wait-",
-	// 	content: customContent,
-	// 	anchor: AnchorPoint.BOTTOM_RIGHT
-	// });
-	// windowManager.createWindow({
-	// 	title:
-	// 		"veeeery looooong title that I haave to pad somehow, so anyway what's up? how you doing? the kids? yeah, I ate them. Or I mean wait-",
-	// 	content: customContent,
-	// 	anchor: AnchorPoint.TOP_RIGHT
-	// });
+
+	windowManager.createWindow({
+		title:
+			"veeeery looooong title that I haave to pad somehow, so anyway what's up? how you doing? the kids? yeah, I ate them. Or I mean wait-",
+		content: content,
+		anchor: AnchorPoint.TOP_RIGHT
+	});
+
 	const clickableBtn = new WindowButton();
 	clickableBtn.text = 'Clicc';
 	clickableBtn.action = () => {
@@ -95,23 +72,27 @@
 		content: clickable,
 		buttons: [clickableBtn]
 	});
+
 	windowManager.createWindow({
 		content: senkoPogContent,
 		anchor: AnchorPoint.TOP_RIGHT
 	});
+	// -------------------------------- Showcase windows init
 
+	audioManager.registerAudioObject('/poggers.mp3', 'poggers');
+	const longAudio = audioManager.registerAudioObject('/sewer.mp3', 'sewer', false);
 	function playSenko() {
 		audioManager.replayByTag('poggers');
 	}
 </script>
 
-<!-- EXAMPLE WINDOW CONTENT - CAN BE MOVED TO SEPARATE .SVELTE COMPONENTS (see Window/Contents) -->
+<!-- EXAMPLE WINDOW CONTENT - CAN BE MOVED TO SEPARATE .SVELTE COMPONENTS (see src/Window/Contents) -->
 {#snippet clickable(props?: { toClick?: GameState })}
 	<p>
 		Current cliccy: {props?.toClick?.money}
 	</p>
 	<p>Paragraph no. 2 hello!</p>
-	<input type="text" value="Wowww this window extends so farrr">
+	<input type="text" value="Wowww this window extends so farrr" />
 	<p>wouldn't it suck if the overflow:auto broke?</p>
 {/snippet}
 
@@ -131,34 +112,20 @@
 
 <AudioComponentContainer {audioManager} />
 
-<!-- -->
 <main class="container" style="display: flex; flex-direction: column; flex: 1 1 auto;">
-	<h1 style="width: 100%; text-align:center;">${gameState.money}</h1>
+	<div class="top-ui-wrapper">
+		<div class="top-ui-container">
+			<span>Hello</span>
+		</div>
+		<div class="top-ui-container">
+			<span>${gameState.money}</span>
+		</div>
+		<div class="top-ui-container">
+			<span>Svelte Gaming</span>
+		</div>
+	</div>
 
-	<!-- TODO: Probably want this in a separate container component -->
-	{#each windows as dWindow}
-		<DisplayWindow
-			{dWindow}
-			onclose={(e) => EventService.dispatchEvent(new WindowCloseEvent(dWindow))}
-			onminimize={(e) => windowManager.handleMinimize(e, dWindow)}
-			onmaximize={(e) => windowManager.handleMaximize(e, dWindow)}
-			onfocus={(e) => windowManager.handleFocus(e, dWindow)}
-			onblur={(e) => windowManager.handleBlur(e, dWindow)}
-			onmovestart={(e: MouseEvent) => {
-				dWindow.setEditMode('moving');
-				if (dWindow.editMode !== 'moving') return;
-
-				if (dWindow.maximized) {
-					dWindow.maximized = false;
-					// TODO!: handle anchors! - snaps to bottom for bottom anchors, and won't work with center anchors either
-					dWindow.position = new Vec2(dWindow.anchor.x * (e.clientX - dWindow.size.x / 2), 0);
-				}
-				windowManager.handleDragStart(e, dWindow, dWindow.editMode);
-			}}
-			onresizestart={(e: MouseEvent) => {
-				dWindow.editMode === 'resizing' && windowManager.handleDragStart(e, dWindow, dWindow.editMode);
-			}} />
-	{/each}
+	<DisplayWindowComponentContainer {windowManager} />
 
 	<div
 		class="btn-container unselectable"
@@ -191,7 +158,7 @@
 				}}>
 				Y/N NotificationWindow
 			</button>
-			<button onclick={() => (windows[0].props!.text = 'Changed...')}>Change notif prop woah</button>
+			<button onclick={() => (testWindow1.props!.text = 'This is CHANGED prop text')}>Change notif prop woah</button>
 		</div>
 
 		<div class="row">
@@ -235,3 +202,17 @@
 		</form>
 	</div>
 </main>
+
+<style>
+	.top-ui-wrapper {
+		display: flex;
+		justify-content: space-between;
+		padding: 0 16px;
+	}
+
+	.top-ui-container {
+		background-color: var(--color-info);
+		padding: 8px;
+		border-radius: 6px;
+	}
+</style>

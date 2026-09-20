@@ -35,7 +35,7 @@ export class DisplayWindow {
 	#maximized = false;
 	#minSize = new Vec2(160, 31.33);
 	#maxSize: Vec2 | undefined;
-	#anchor = new Vec2(1, 1); // x = 1 -> left, x = -1 -> right; y = 1 -> top, y = -1 -> bottom (see getAnchorEnum())
+	#anchor = new Vec2(1, 1); // x = 1 -> left, x = -1 -> right; y = 1 -> top, y = -1 -> bottom, otherwise (0) = center (see getAnchorEnum())
 	#zIndex = WindowService.DEFAULT_Z_INDEX;
 	#buttons: WindowButton[] = [];
 	#content: Snippet<[Record<string, any> | undefined]>;
@@ -179,6 +179,7 @@ export class DisplayWindow {
 		this.#anchor = new Vec2(xAnchorSign, yAnchorSign);
 	}
 	public getAnchorEnum() {
+		// TODO?: TOP_CENTER, BOTTOM_CENTER, CENTER_LEFT, CENTER_RIGHT
 		if (this.#anchor.x == 1) return this.#anchor.y == 1 ? AnchorPoint.TOP_LEFT : AnchorPoint.BOTTOM_LEFT;
 		if (this.#anchor.x == -1) return this.#anchor.y == 1 ? AnchorPoint.TOP_RIGHT : AnchorPoint.BOTTOM_RIGHT;
 		return AnchorPoint.CENTER; // TODO

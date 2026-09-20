@@ -225,6 +225,7 @@ export class WindowService {
 		dWindow.layout = options.layout ? options.layout : this.generateDefaultWindowLayout(dWindow);
 
 		this.registerWindow(dWindow);
+		return dWindow;
 	}
 
 	public createClassWindow(dWindow: DisplayWindow) {
