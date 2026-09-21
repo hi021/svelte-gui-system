@@ -35,8 +35,8 @@
 	alwaysOnTopBtn.text = 'Toggle backdrop idk man';
 	const alwaysOnTopWindowParams: CreateWindowParams = {
 		title: 'TOP',
-		windowContainerCss: `background-color: ${new Color(ColorEnum.SUCCESS)};`,
-		contentContainerCss: `background-color: ${new Color(ColorEnum.WARNING)};`,
+		customWindowContainerCss: `background-color: ${new Color(ColorEnum.SUCCESS)};`,
+		customContentContainerCss: `background-color: ${new Color(ColorEnum.WARNING)};`,
 		size: v2,
 		alwaysOnTop: true,
 		minimizable: false,

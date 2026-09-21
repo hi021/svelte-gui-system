@@ -52,6 +52,12 @@
 	padding: var(--padding);
 	overflow: auto;
 }
+.display-window-container[data-window-state='minimized'] .display-window-content-wrapper {
+	height: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	overflow: hidden;
+}
 .display-window-content {
 	flex: 1 1 auto;
 }

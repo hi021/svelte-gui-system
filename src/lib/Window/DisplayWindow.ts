@@ -23,8 +23,8 @@ export class DisplayWindow {
 	public alwaysOnTop = false;
 	public focused = true;
 	public backdropVisible = false;
-	public windowContainerCss = '';
-	public contentContainerCss = '';
+	public customWindowContainerCss = '';
+	public customContentContainerCss = '';
 	public props?: Record<string, any>;
 	#id = 0;
 	#size = new Vec2(600, 400);
@@ -33,7 +33,7 @@ export class DisplayWindow {
 	#editMode: WindowEditMode = null;
 	#minimized = false;
 	#maximized = false;
-	#minSize = new Vec2(160, 31.33);
+	#minSize = new Vec2(160, 36);
 	#maxSize: Vec2 | undefined;
 	#anchor = new Vec2(1, 1); // x = 1 -> left, x = -1 -> right; y = 1 -> top, y = -1 -> bottom, otherwise (0) = center (see getAnchorEnum())
 	#zIndex = WindowService.DEFAULT_Z_INDEX;
@@ -285,23 +285,33 @@ export class DisplayWindow {
 		return `--x: ${x}; --y: ${y}; ${inset}`;
 	}
 
-	public get sizeCss() {
+	public get widthCss() {
 		const w = this.maximized ? '100%' : `${this.size.x}px`;
-		const h = this.maximized ? '100%' : `${this.size.y}px`;
-		const height = this.minimized ? '' : ' height: var(--h);';
-		return `--w: ${w}; --h: ${h};${height}`;
+		return `--w: ${w};`;
 	}
 
-	public get css() {
-		// TODO perhaps a StyleService that stores the rem font-size, so this isnt as hard coded?
-		const overflow = this.size.x < 72 || this.size.y < 72 ? 'overflow: hidden;' : '';
+	public get heightCss() {
+		const h = this.maximized ? '100%' : `${this.size.y}px`;
+		const height = this.minimized ? '' : ' height: var(--h);';
+		return `--h: ${h};${height}`;
+	}
+
+	// --padding: ${this.layout.padding}px;
+	public get windowContainerCss() {
 		return `${this.positioningCss}
-		${this.sizeCss}
-		${overflow}
+		${this.widthCss}
     --border-radius: ${this.layout.borderRadius}px;
-    --padding: ${this.layout.padding}px;
     --z-index: ${this.zIndex};
-    ${this.windowContainerCss}`;
+    ${this.customWindowContainerCss}`;
+	}
+
+	public get contentContainerCss() {
+		// TODO: perhaps a StyleService that stores the rem font-size, so this isnt as hard coded?
+		const overflow = this.size.x < 72 || this.size.y < 72 ? 'overflow: hidden;' : '';
+		return `${this.heightCss}
+		${overflow}
+    --padding: ${this.layout.padding}px;
+    ${this.customContentContainerCss}`;
 	}
 
 	public setButtons(buttons: WindowButton[]) {

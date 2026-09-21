@@ -106,7 +106,7 @@
 	data-edit-mode={editMode}
 	data-window-state={dWindow.windowState}
 	draggable="false"
-	style={dWindow.css}
+	style={dWindow.windowContainerCss}
 	tabindex="0"
 	{onfocus}
 	{onblur}
@@ -156,22 +156,22 @@
 		</div>
 	{/if}
 
-	{#if !dWindow.minimized}
-		<div
-			class="display-window-content-wrapper scrollbar-dark"
-			style={dWindow.contentContainerCss}
-			transition:slide|global={{ duration: 150 }}>
-			<div class="display-window-content">
-				{@render dWindow.content(dWindow.props)}
-			</div>
-
-			{#if dWindow.buttons?.length}
-				<div class="display-window-button-container {dWindow.layout.buttonContainerClass}">
-					{#each dWindow.buttons as button}
-						<WindowButton {dWindow} {button} />
-					{/each}
-				</div>
-			{/if}
+	<!-- {#if !dWindow.minimized} -->
+	<div
+		class="display-window-content-wrapper scrollbar-dark"
+		style={dWindow.contentContainerCss}
+		transition:slide|global={{ duration: 150 }}>
+		<div class="display-window-content">
+			{@render dWindow.content(dWindow.props)}
 		</div>
-	{/if}
+
+		{#if dWindow.buttons?.length}
+			<div class="display-window-button-container {dWindow.layout.buttonContainerClass}">
+				{#each dWindow.buttons as button}
+					<WindowButton {dWindow} {button} />
+				{/each}
+			</div>
+		{/if}
+	</div>
+	<!-- {/if} -->
 </div>

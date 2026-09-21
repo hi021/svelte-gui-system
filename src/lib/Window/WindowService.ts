@@ -34,8 +34,14 @@ export class WindowService {
 	#windowIdSequence = 1;
 
 	public constructor() {
-		EventService.windowCloseEvent.subscribe((event) => event && this.closeWindow(event.sourceWindow));
-		EventService.windowModificationEvent.subscribe((event) => event && this.updateWindowsStore());
+		// TODO: to verify how this works with multiple window services, maybe need separate event buses for each one
+		EventService.windowCloseEvent.subscribe(
+			(event) =>
+				event && [...this.#windows.values()].includes(event.sourceWindow) && this.closeWindow(event.sourceWindow)
+		);
+		EventService.windowModificationEvent.subscribe(
+			(event) => event && [...this.#windows.values()].includes(event.sourceWindow) && this.updateWindowsStore()
+		);
 	}
 
 	public static windowExists(dWindow?: DisplayWindow) {
@@ -214,8 +220,8 @@ export class WindowService {
 		if (options.minimized != null) dWindow.minimized = options.minimized;
 		if (options.maximized != null) dWindow.maximized = options.maximized;
 		if (options.backdropVisible != null) dWindow.backdropVisible = options.backdropVisible;
-		if (options.windowContainerCss) dWindow.windowContainerCss = options.windowContainerCss;
-		if (options.contentContainerCss) dWindow.contentContainerCss = options.contentContainerCss;
+		if (options.customWindowContainerCss) dWindow.customWindowContainerCss = options.customWindowContainerCss;
+		if (options.customContentContainerCss) dWindow.customContentContainerCss = options.customContentContainerCss;
 		if (options.props) dWindow.props = options.props;
 		if (options.size) dWindow.size = options.size;
 		if (options.anchor) dWindow.setAnchorEnum(options.anchor);
