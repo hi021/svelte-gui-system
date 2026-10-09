@@ -7,42 +7,42 @@ import { WindowService } from '$lib/Window/WindowService';
 import type { Snippet } from 'svelte';
 import { Vec2 } from '../Util/Vec2';
 import { AnchorPoint } from './AnchorPoint';
-import { WindowButton } from './Button/WindowButton';
-import { WindowLayout } from './WindowLayout';
+import { WindowButton } from './Button/WindowButton.svelte';
+import { WindowLayout } from './WindowLayout.svelte';
 
 export type WindowEditMode = 'moving' | 'resizing' | null;
 
-export class DisplayWindow {
+export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public objectClass = 'NONE';
-	public title = '';
-	public layout = new WindowLayout();
-	public minimizable = true;
-	public maximizable = true;
-	public resizeable = true;
-	public draggable = true;
-	public alwaysOnTop = false;
-	public focused = true;
-	public backdropVisible = false;
-	public customWindowContainerCss = '';
-	public customContentContainerCss = '';
-	public props?: Record<string, any>;
-	#id = 0;
-	#size = new Vec2(600, 400);
-	#position = new Vec2();
-	#dragBoundary = new Vec4(); // TODO
-	#editMode: WindowEditMode = null;
-	#minimized = false;
-	#maximized = false;
-	#minSize = new Vec2(160, 36);
-	#maxSize: Vec2 | undefined;
-	#anchor = new Vec2(1, 1); // x = 1 -> left, x = -1 -> right; y = 1 -> top, y = -1 -> bottom, otherwise (0) = center (see getAnchorEnum())
-	#zIndex = WindowService.DEFAULT_Z_INDEX;
-	#buttons: WindowButton[] = [];
-	#content: Snippet<[Record<string, any> | undefined]>;
-	#parent?: DisplayWindow;
-	#children: DisplayWindow[] = [];
+	public title = $state('');
+	public layout = $state(new WindowLayout());
+	public minimizable = $state(true);
+	public maximizable = $state(true);
+	public resizeable = $state(true);
+	public draggable = $state(true);
+	public alwaysOnTop = $state(false);
+	public focused = $state(true);
+	public backdropVisible = $state(false);
+	public customWindowContainerCss = $state('');
+	public customContentContainerCss = $state('');
+	public props = $state<P | undefined>();
+	#id = $state(0);
+	#size = $state(new Vec2(600, 400));
+	#position = $state(new Vec2());
+	#dragBoundary = $state(new Vec4()); // TODO
+	#editMode = $state<WindowEditMode>(null);
+	#minimized = $state(false);
+	#maximized = $state(false);
+	#minSize = $state(new Vec2(160, 36));
+	#maxSize = $state<Vec2 | undefined>();
+	#anchor = $state(new Vec2(1, 1));
+	#zIndex = $state(WindowService.DEFAULT_Z_INDEX);
+	#buttons = $state<WindowButton[]>([]);
+	#content: Snippet<[P | undefined]>;
+	#parent = $state<DisplayWindow<any> | undefined>();
+	#children = $state<DisplayWindow<any>[]>([]);
 
-	public constructor(id: number, content: Snippet<[Record<string, any> | undefined]>) {
+	public constructor(id: number, content: Snippet<[P | undefined]>) {
 		this.#id = id;
 		this.#content = content;
 	}
@@ -51,12 +51,12 @@ export class DisplayWindow {
 		return this.#id;
 	}
 	public set id(id: number) {
-		if (this.id) {
-			console.warn(`Attempted to override id for ${this}`);
-			return;
-		}
 		if (!id) {
 			console.warn(`Attempted to unset id for ${this}`);
+			return;
+		}
+		if (this.id) {
+			console.warn(`Attempted to override id for ${this}`);
 			return;
 		}
 
@@ -96,24 +96,25 @@ export class DisplayWindow {
 	}
 
 	public get size() {
-		return this.#size;
+		return new Vec2(this.#size.x, this.#size.y);
 	}
 	public set size(size: Vec2) {
 		if (!(size instanceof Vec2)) throw new TypeError('Invalid window property value provided - size must be a Vec2');
 
-		if (size.x < this.minSize.x) size.x = this.minSize.x;
-		else if (this.maxSize && size.x > this.maxSize.x) size.x = this.maxSize.x;
-		if (size.y < this.minSize.y) size.y = this.minSize.y;
-		else if (this.maxSize && size.y > this.maxSize.y) size.y = this.maxSize.y;
+		const ownedSize = new Vec2(size.x, size.y);
+		if (ownedSize.x < this.#minSize.x) ownedSize.x = this.#minSize.x;
+		else if (this.#maxSize && ownedSize.x > this.#maxSize.x) ownedSize.x = this.#maxSize.x;
+		if (ownedSize.y < this.#minSize.y) ownedSize.y = this.#minSize.y;
+		else if (this.#maxSize && ownedSize.y > this.#maxSize.y) ownedSize.y = this.#maxSize.y;
 
-		this.#size = size;
+		this.#size = ownedSize;
 	}
-	public setSize(w: number, h: number) {
-		this.size = new Vec2(w, h);
+	public setSize(w?: number, h?: number) {
+		this.size = new Vec2(w ?? this.#size.x, h ?? this.#size.y);
 	}
 
 	public get minSize() {
-		return this.#minSize;
+		return new Vec2(this.#minSize.x, this.#minSize.y);
 	}
 	public set minSize(size: Vec2) {
 		if (!(size instanceof Vec2)) throw new TypeError('Invalid window property value provided - size must be a Vec2');
@@ -121,17 +122,17 @@ export class DisplayWindow {
 			throw new Error(
 				'Invalid window property value provided - size must be a Vec2 consisting of two positive numbers'
 			);
-		if (this.maxSize && (size.x > this.maxSize.x || size.y > this.maxSize.y))
+		if (this.#maxSize && (size.x > this.#maxSize.x || size.y > this.#maxSize.y))
 			throw new Error('Invalid window property value provided - min size must be less than max size');
 
-		this.#minSize = size;
+		this.#minSize = new Vec2(size.x, size.y);
 	}
-	public setMinSize(w: number, h: number) {
-		this.minSize = new Vec2(w, h);
+	public setMinSize(w?: number, h?: number) {
+		this.minSize = new Vec2(w ?? this.#minSize.x, h ?? this.#minSize.y);
 	}
 
 	public get maxSize() {
-		return this.#maxSize;
+		return this.#maxSize ? new Vec2(this.#maxSize.x, this.#maxSize.y) : undefined;
 	}
 	public set maxSize(size: Vec2 | undefined) {
 		if (size == null) {
@@ -145,29 +146,39 @@ export class DisplayWindow {
 				'Invalid window property value provided - size must be a Vec2 consisting of two positive numbers'
 			);
 
-		if (size.x < this.minSize.x || size.y < this.minSize.y)
+		if (size.x < this.#minSize.x || size.y < this.#minSize.y)
 			throw new Error('Invalid window property value provided - max size must be greater than min size');
 
-		this.#maxSize = size;
+		this.#maxSize = new Vec2(size.x, size.y);
 	}
-	public setMaxSize(w: number, h: number) {
-		this.maxSize = new Vec2(w, h);
+	public setMaxSize(w?: number, h?: number) {
+		const width = w ?? this.#maxSize?.x;
+		const height = h ?? this.#maxSize?.y;
+
+		if (!width || !height) {
+			this.#maxSize = undefined;
+			return;
+		}
+		if (width < this.#minSize.x || height < this.#minSize.y)
+			throw new Error('Invalid window property value provided - max size must be greater than min size');
+
+		this.maxSize = new Vec2(width, height);
 	}
 
 	public get position() {
-		return this.#position;
+		return new Vec2(this.#position.x, this.#position.y);
 	}
 	public set position(position: Vec2) {
 		if (!(position instanceof Vec2))
 			throw new TypeError('Invalid window property value provided - position must be a Vec2');
-		this.#position = position;
+		this.#position = new Vec2(position.x, position.y);
 	}
-	public setPosition(w: number, h: number) {
-		this.#position = new Vec2(w, h);
+	public setPosition(w?: number, h?: number) {
+		this.#position = new Vec2(w ?? this.#position.x, h ?? this.#position.y);
 	}
 
 	public get anchor() {
-		return this.#anchor;
+		return new Vec2(this.#anchor.x, this.#anchor.y);
 	}
 
 	public setAnchorEnum(anchor: AnchorPoint) {
@@ -179,10 +190,10 @@ export class DisplayWindow {
 		this.#anchor = new Vec2(xAnchorSign, yAnchorSign);
 	}
 	public getAnchorEnum() {
-		// TODO?: TOP_CENTER, BOTTOM_CENTER, CENTER_LEFT, CENTER_RIGHT
+		// TODO: Support top/bottom center and center-side anchors.
 		if (this.#anchor.x == 1) return this.#anchor.y == 1 ? AnchorPoint.TOP_LEFT : AnchorPoint.BOTTOM_LEFT;
 		if (this.#anchor.x == -1) return this.#anchor.y == 1 ? AnchorPoint.TOP_RIGHT : AnchorPoint.BOTTOM_RIGHT;
-		return AnchorPoint.CENTER; // TODO
+		return AnchorPoint.CENTER;
 	}
 
 	public get zIndex() {
@@ -194,8 +205,8 @@ export class DisplayWindow {
 		this.#zIndex = zIndex;
 	}
 
-	public get buttons() {
-		return this.#buttons.map((button) => button.clone());
+	public get buttons(): readonly WindowButton[] {
+		return this.#buttons;
 	}
 	public set buttons(buttons: WindowButton[]) {
 		for (const button of buttons ?? []) this.addButton(button);
@@ -221,14 +232,13 @@ export class DisplayWindow {
 	public get parent() {
 		return this.#parent;
 	}
-	// this also adds the current window as a child of the target parent
-	public setParent(dWindow?: DisplayWindow) {
+	public setParent(dWindow?: DisplayWindow<any>) {
 		if (!dWindow) return this.removeParent();
 		if (this.#parent == dWindow) return;
 		if (this.#children.includes(dWindow)) return console.warn(`Attempted to set existing child as parent for ${this}`);
 		if (!WindowService.windowExists(dWindow)) return console.warn(`Attempted to set parent for ${this}`);
 
-		dWindow.children.push(this);
+		dWindow.#children.push(this);
 		this.#parent = dWindow;
 	}
 	public removeParent() {
@@ -237,28 +247,29 @@ export class DisplayWindow {
 		this.#parent = undefined;
 	}
 
-	public get children() {
+	public get children(): readonly DisplayWindow<any>[] {
 		return this.#children;
 	}
-	public addChild(dWindow: DisplayWindow) {
+	public addChild(dWindow: DisplayWindow<any>) {
+		// TODO: Implement hierarchy membership updates.
 		if (!WindowService.windowExists(dWindow))
 			return console.warn(`Attempted to add already orphaned window to ${this}`);
 	}
-	public addChildren(dWindows: DisplayWindow[]) {
+	public addChildren(dWindows: DisplayWindow<any>[]) {
 		for (const dWindow of dWindows) this.addChild(dWindow);
 	}
-	public removeChild(dWindow: DisplayWindow) {
+	public removeChild(dWindow: DisplayWindow<any>) {
 		if (!dWindow) return;
 		if (dWindow.parent != this) return console.warn(`Attempted to remove inexistent child from ${this}`);
 		dWindow.removeParent();
 	}
-	public removeChildren(dWindows: DisplayWindow[]) {
+	public removeChildren(dWindows: DisplayWindow<any>[]) {
 		for (const dWindow of dWindows) this.removeChild(dWindow);
 	}
 	public clearChildren() {
 		this.removeChildren(this.#children);
 	}
-	private removeChildOnly(dWindow: DisplayWindow) {
+	private removeChildOnly(dWindow: DisplayWindow<any>) {
 		this.#children = this.#children.filter((child) => child != dWindow);
 	}
 
@@ -271,12 +282,10 @@ export class DisplayWindow {
 	public get positioningCss() {
 		if (this.maximized) return 'inset: 0;';
 
-		const x = `${this.position.x}px`;
-		const y = `${this.position.y}px`;
+		const x = `${this.#position.x}px`;
+		const y = `${this.#position.y}px`;
 
 		let inset = '';
-		// if (this.anchor == AnchorPoint.CENTER) TODO
-
 		if (this.#anchor.y == 1) inset += `top: ${y}; `;
 		else if (this.#anchor.y == -1) inset += `bottom: ${y}; `;
 		if (this.#anchor.x == 1) inset += `left: ${x};`;
@@ -286,17 +295,16 @@ export class DisplayWindow {
 	}
 
 	public get widthCss() {
-		const w = this.maximized ? '100%' : `${this.size.x}px`;
+		const w = this.maximized ? '100%' : `${this.#size.x}px`;
 		return `--w: ${w};`;
 	}
 
 	public get heightCss() {
-		const h = this.maximized ? '100%' : `${this.size.y}px`;
+		const h = this.maximized ? '100%' : `${this.#size.y}px`;
 		const height = this.minimized ? '' : ' height: var(--h);';
 		return `--h: ${h};${height}`;
 	}
 
-	// --padding: ${this.layout.padding}px;
 	public get windowContainerCss() {
 		return `${this.positioningCss}
 		${this.widthCss}
@@ -306,8 +314,7 @@ export class DisplayWindow {
 	}
 
 	public get contentContainerCss() {
-		// TODO: perhaps a StyleService that stores the rem font-size, so this isnt as hard coded?
-		const overflow = this.size.x < 72 || this.size.y < 72 ? 'overflow: hidden;' : '';
+		const overflow = this.#size.x < 72 || this.#size.y < 72 ? 'overflow: hidden;' : '';
 		return `${this.heightCss}
 		${overflow}
     --padding: ${this.layout.padding}px;
@@ -323,12 +330,7 @@ export class DisplayWindow {
 		this.#buttons.push(button.clone());
 	}
 
-	public forceRefreshAllWindows() {
-		EventService.dispatchEvent(new WindowModificationEvent(this));
-	}
-
 	public matchesPredicates(predicates: Partial<{ [K in keyof this]: this[K] }>, mode: PredicateMode) {
-		// TODO: Some sort of recursion or at least validation for array/enum/object/class instance fields - those will probably not work
 		for (const property in predicates) {
 			if (this[property] == predicates[property]) {
 				if (mode == PredicateMode.ANY) return true;

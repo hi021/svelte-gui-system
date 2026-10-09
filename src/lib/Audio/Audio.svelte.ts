@@ -3,9 +3,9 @@ import { MediaState } from './MediaState';
 export class Audio {
 	public objectClass = 'NONE';
 	public path: string;
-	public tag: string | undefined;
+	public tag: string | undefined = $state(undefined);
 	public looping = $state(false);
-	private _element: HTMLAudioElement | undefined; // Setter not to be used outside the svelte component!
+	private _element: HTMLAudioElement | undefined = $state(undefined); // Setter not to be used outside the svelte component!
 	private _state = $state(MediaState.UNDEFINED); // Setter not to be used outside the svelte component!
 	#id: number;
 	#lazy: boolean;

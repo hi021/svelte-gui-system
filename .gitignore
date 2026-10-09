@@ -9,3 +9,4 @@ package
 !.env.example
 vite.config.*.timestamp-*
 static/sewer.mp3
+docs

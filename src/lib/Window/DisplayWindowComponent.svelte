@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { KeyAction } from '$lib/Keybind/KeyActionEnum';
 	import { KeybindService } from '$lib/Keybind/KeybindService';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { fade, scale, slide } from 'svelte/transition';
 	import WindowButton from './Button/WindowButtonComponent.svelte';
-	import type { DisplayWindow } from './DisplayWindow';
+	import type { DisplayWindow } from './DisplayWindow.svelte';
 
 	let {
 		dWindow,
@@ -16,7 +16,7 @@
 		onmovestart,
 		onresizestart
 	}: {
-		dWindow: DisplayWindow;
+		dWindow: DisplayWindow<any>;
 		onclose: (e: Event) => boolean | void;
 		onminimize: (e: Event) => boolean | void;
 		onmaximize: (e: Event) => boolean | void;
@@ -25,15 +25,14 @@
 		onmovestart: (e: MouseEvent) => void;
 		onresizestart: (e: MouseEvent) => void;
 	} = $props();
-	if (!dWindow) throw new Error('Failed to render DisplayWindow - no valid prop passed');
-	console.debug('Mounted window:', dWindow);
-
 	let dWindowElement: HTMLDivElement;
 	let editMode = $derived(dWindow.editMode);
 	let pendingMove = false;
 
 	function cancelPendingMove() {
 		pendingMove = false;
+		if (typeof document === 'undefined') return;
+
 		document.removeEventListener('mousemove', handlePendingMove);
 		document.removeEventListener('mouseup', cancelPendingMove);
 	}
@@ -77,11 +76,11 @@
 	onMount(() => {
 		dWindowElement.addEventListener('keyup', handleKeyUp);
 		dWindowElement.addEventListener('keydown', handleKeyDown);
-	});
-	onDestroy(() => {
-		dWindowElement.removeEventListener('keyup', handleKeyUp);
-		dWindowElement.removeEventListener('keydown', handleKeyDown);
-		cancelPendingMove();
+		return () => {
+			dWindowElement.removeEventListener('keyup', handleKeyUp);
+			dWindowElement.removeEventListener('keydown', handleKeyDown);
+			cancelPendingMove();
+		};
 	});
 </script>
 
@@ -156,7 +155,6 @@
 		</div>
 	{/if}
 
-	<!-- {#if !dWindow.minimized} -->
 	<div
 		class="display-window-content-wrapper scrollbar-dark"
 		style={dWindow.contentContainerCss}
@@ -173,5 +171,4 @@
 			</div>
 		{/if}
 	</div>
-	<!-- {/if} -->
 </div>

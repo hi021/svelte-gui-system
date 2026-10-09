@@ -1,8 +1,8 @@
 import { EventService } from '$lib/Event/EventService';
 import { WindowCloseEvent } from '$lib/Event/WindowCloseEvent';
-import type { DisplayWindow } from '../DisplayWindow';
+import type { DisplayWindow } from '../DisplayWindow.svelte';
 import { ButtonConfiguration } from './ButtonConfiguration';
-import { WindowButton, type WindowButtonAction } from './WindowButton';
+import { WindowButton, type WindowButtonAction } from './WindowButton.svelte';
 
 export type MinimalWindowArguments = {
 	text?: string;

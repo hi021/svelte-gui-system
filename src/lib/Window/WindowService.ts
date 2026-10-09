@@ -1,55 +1,77 @@
 import { EventService } from '$lib/Event/EventService';
-import type { FieldsOnly } from '$lib/Util/Util';
-import { writable } from 'svelte/store';
+import type { Snippet } from 'svelte';
+import { readonly, writable, type Readable } from 'svelte/store';
 import { PredicateMode } from '../Util/PredicateMode';
 import { Vec2 } from '../Util/Vec2';
 import { AnchorPoint } from './AnchorPoint';
-import { DisplayWindow, type WindowEditMode } from './DisplayWindow';
-import { WindowLayout } from './WindowLayout';
+import { WindowButton } from './Button/WindowButton.svelte';
+import { DisplayWindow, type WindowEditMode } from './DisplayWindow.svelte';
+import { WindowLayout } from './WindowLayout.svelte';
+
+type ManagedWindow = DisplayWindow<any>;
 
 type EditingWindow = {
-	dWindow: DisplayWindow;
+	dWindow: ManagedWindow;
 	offset: Vec2;
 	mode: WindowEditMode;
 };
 
-export type CreateWindowParams = Partial<
-	FieldsOnly<
-		Omit<DisplayWindow, 'anchor' | 'css' | 'editMode' | 'id' | 'positioningCss' | 'sizeCss' | 'windowState' | 'zIndex'>
-	>
-> &
-	Pick<DisplayWindow, 'content'> & { anchor?: AnchorPoint };
+export type CreateWindowParams<P extends object = Record<string, unknown>> = {
+	content: Snippet<[P | undefined]>;
+	props?: P;
+	title?: string;
+	objectClass?: string;
+	layout?: WindowLayout;
+	minimizable?: boolean;
+	maximizable?: boolean;
+	resizeable?: boolean;
+	draggable?: boolean;
+	alwaysOnTop?: boolean;
+	focused?: boolean;
+	minimized?: boolean;
+	maximized?: boolean;
+	backdropVisible?: boolean;
+	customWindowContainerCss?: string;
+	customContentContainerCss?: string;
+	position?: Vec2;
+	size?: Vec2;
+	minSize?: Vec2;
+	maxSize?: Vec2;
+	anchor?: AnchorPoint;
+	buttons?: WindowButton[];
+	parent?: ManagedWindow;
+	children?: ManagedWindow[];
+};
 
 export class WindowService {
 	static readonly MAX_WINDOWS = 128;
 	static readonly DEFAULT_Z_INDEX = 3;
 	static readonly TOP_Z_INDEX = WindowService.DEFAULT_Z_INDEX + WindowService.MAX_WINDOWS + 3;
 
-	readonly #windows = new Map<number, DisplayWindow>();
-	#windowsStore = writable<DisplayWindow[]>([]);
+	readonly #windows = new Map<number, ManagedWindow>();
+	readonly #windowsStore = writable<readonly ManagedWindow[]>(Object.freeze([]));
+	readonly #windowsReadable: Readable<readonly ManagedWindow[]> = readonly(this.#windowsStore);
 	#windowsOnTop = new Set<number>();
 	readonly #windowsByZIndex = new Map<number, number>();
-	#focusedWindow: DisplayWindow | null = null;
+	#focusedWindow: ManagedWindow | null = null;
 	#editingWindow: EditingWindow | null = null;
 	#windowIdSequence = 1;
+	#unsubscribeClose: () => void;
+	#disposed = false;
 
 	public constructor() {
-		// TODO: to verify how this works with multiple window services, maybe need separate event buses for each one
-		EventService.windowCloseEvent.subscribe(
+		this.#unsubscribeClose = EventService.windowCloseEvent.subscribe(
 			(event) =>
 				event && [...this.#windows.values()].includes(event.sourceWindow) && this.closeWindow(event.sourceWindow)
 		);
-		EventService.windowModificationEvent.subscribe(
-			(event) => event && [...this.#windows.values()].includes(event.sourceWindow) && this.updateWindowsStore()
-		);
 	}
 
-	public static windowExists(dWindow?: DisplayWindow) {
+	public static windowExists(dWindow?: ManagedWindow) {
 		return !!dWindow?.id;
 	}
 
-	public get windows() {
-		return this.#windowsStore;
+	public get windows(): Readable<readonly ManagedWindow[]> {
+		return this.#windowsReadable;
 	}
 
 	public get focusedWindow() {
@@ -75,11 +97,11 @@ export class WindowService {
 		return id ? this.getWindowById(id) : undefined;
 	}
 
-	public getWindowsByPredicates<T extends DisplayWindow>(
+	public getWindowsByPredicates<T extends ManagedWindow>(
 		predicates: Partial<{ [K in keyof T]: T[K] }>,
 		mode = PredicateMode.ALL
 	) {
-		const windows: DisplayWindow[] = [];
+		const windows: ManagedWindow[] = [];
 		for (const [_, dWindow] of this.#windows) {
 			if (dWindow.matchesPredicates(predicates, mode)) windows.push(dWindow);
 		}
@@ -106,13 +128,18 @@ export class WindowService {
 		console.log(debugString);
 	}
 
-	public handleClose(e: Event, dWindow: DisplayWindow) {
+	public handleClose(e: Event, dWindow: ManagedWindow) {
 		return this.closeWindow(dWindow);
 	}
 
-	public closeWindow(dWindow: DisplayWindow) {
+	public closeWindow(dWindow: ManagedWindow) {
+		if (this.#windows.get(dWindow.id) !== dWindow) return false;
 		if (this.#focusedWindow?.id == dWindow.id) this.#focusedWindow = null;
 		if (dWindow.alwaysOnTop) this.#windowsOnTop.delete(dWindow.id);
+		if (this.#editingWindow?.dWindow === dWindow) {
+			dWindow.setEditMode(null);
+			this.#editingWindow = null;
+		}
 
 		this.#windowsByZIndex.delete(dWindow.zIndex);
 		this.removeWindowsMap(dWindow);
@@ -120,34 +147,30 @@ export class WindowService {
 		return true;
 	}
 
-	public handleMinimize(e: Event, dWindow: DisplayWindow) {
+	public handleMinimize(e: Event, dWindow: ManagedWindow) {
 		this.toggleMinimizeWindow(dWindow);
 	}
 
-	public handleMaximize(e: Event, dWindow: DisplayWindow) {
+	public handleMaximize(e: Event, dWindow: ManagedWindow) {
 		this.toggleMaximizeWindow(dWindow);
 	}
 
-	public toggleMaximizeWindow(dWindow: DisplayWindow) {
+	public toggleMaximizeWindow(dWindow: ManagedWindow) {
 		dWindow.maximized = !dWindow.maximized;
 	}
 
-	public toggleMinimizeWindow(dWindow: DisplayWindow) {
+	public toggleMinimizeWindow(dWindow: ManagedWindow) {
 		dWindow.minimized = !dWindow.minimized;
 	}
 
-	public handleDragStart(e: MouseEvent, dWindow: DisplayWindow, mode: WindowEditMode) {
+	public handleDragStart(e: MouseEvent, dWindow: ManagedWindow, mode: WindowEditMode) {
 		// TODO handle Center anchor
-
-		console.debug('Drag start 1', dWindow.anchor, dWindow.position, e.clientX, e.clientY); //TODO: DEBUG ONLY - remove
 
 		const offset =
 			mode == 'moving' ?
 				new Vec2(dWindow.anchor.x * dWindow.position.x - e.clientX, dWindow.anchor.y * dWindow.position.y - e.clientY)
 			:	new Vec2(dWindow.anchor.x * dWindow.size.x - e.clientX, dWindow.anchor.y * dWindow.size.y - e.clientY);
 		this.#editingWindow = { dWindow, mode, offset };
-
-		console.debug('Drag start 2', offset); //TODO: DEBUG ONLY - remove
 	}
 
 	public handleDragEnd(e: MouseEvent) {
@@ -172,18 +195,16 @@ export class WindowService {
 				dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y)
 			);
 		}
-
-		this.updateWindowsStore();
 	}
 
-	public handleFocus(e: FocusEvent, dWindow: DisplayWindow) {
+	public handleFocus(e: FocusEvent, dWindow: ManagedWindow) {
 		this.focusWindow(dWindow);
 	}
-	public handleBlur(e: FocusEvent, dWindow: DisplayWindow) {
+	public handleBlur(e: FocusEvent, dWindow: ManagedWindow) {
 		this.unfocusWindow();
 	}
 
-	public focusWindow(dWindow: DisplayWindow) {
+	public focusWindow(dWindow: ManagedWindow) {
 		if (this.#focusedWindow == dWindow) return;
 		this.unfocusWindow();
 
@@ -191,7 +212,6 @@ export class WindowService {
 		this.#focusedWindow = dWindow;
 		// TODO
 		this.setFocusedWindowZIndex(dWindow);
-		this.updateWindowsStore();
 	}
 
 	public unfocusWindow() {
@@ -205,8 +225,8 @@ export class WindowService {
 		return node instanceof HTMLElement && node.nodeName == 'DIV' && node.hasAttribute('data-window-class');
 	}
 
-	public createWindow(options: CreateWindowParams) {
-		const dWindow = new DisplayWindow(this.determineNewWindowId(), options.content);
+	public createWindow<P extends object = Record<string, unknown>>(options: CreateWindowParams<P>): DisplayWindow<P> {
+		const dWindow = new DisplayWindow<P>(this.determineNewWindowId(), options.content);
 
 		if (options.title) dWindow.title = options.title;
 		if (options.objectClass) dWindow.objectClass = options.objectClass;
@@ -222,8 +242,10 @@ export class WindowService {
 		if (options.backdropVisible != null) dWindow.backdropVisible = options.backdropVisible;
 		if (options.customWindowContainerCss) dWindow.customWindowContainerCss = options.customWindowContainerCss;
 		if (options.customContentContainerCss) dWindow.customContentContainerCss = options.customContentContainerCss;
-		if (options.props) dWindow.props = options.props;
+		if (options.props != null) dWindow.props = options.props;
 		if (options.size) dWindow.size = options.size;
+		if (options.minSize) dWindow.minSize = options.minSize;
+		if (options.maxSize) dWindow.maxSize = options.maxSize;
 		if (options.anchor) dWindow.setAnchorEnum(options.anchor);
 		if (options.buttons) dWindow.buttons = options.buttons;
 		if (options.parent != null) dWindow.setParent(options.parent);
@@ -234,12 +256,14 @@ export class WindowService {
 		return dWindow;
 	}
 
-	public createClassWindow(dWindow: DisplayWindow) {
+	public createClassWindow<T extends ManagedWindow>(dWindow: T): T {
 		dWindow.id = this.determineNewWindowId();
 		this.registerWindow(dWindow);
+		return dWindow;
 	}
 
-	private registerWindow(dWindow: DisplayWindow) {
+	private registerWindow(dWindow: ManagedWindow) {
+		if (this.#disposed) throw new Error('Cannot register a window with a disposed WindowService');
 		if (this.#windows.size >= WindowService.MAX_WINDOWS)
 			throw new Error(`Failed to register window: maximum number of windows is ${WindowService.MAX_WINDOWS}`);
 
@@ -248,7 +272,7 @@ export class WindowService {
 		this.setWindowsMap(dWindow);
 	}
 
-	private generateDefaultWindowLayout(dWindow: DisplayWindow) {
+	private generateDefaultWindowLayout(dWindow: ManagedWindow) {
 		return new WindowLayout({
 			maximizeButton: dWindow.maximizable,
 			minimizeButton: dWindow.minimizable,
@@ -256,21 +280,30 @@ export class WindowService {
 		});
 	}
 
-	private setWindowsMap(dWindow: DisplayWindow) {
+	private setWindowsMap(dWindow: ManagedWindow) {
 		this.#windows.set(dWindow.id, dWindow);
-		this.updateWindowsStore();
+		this.publishWindowMembership();
 	}
 
-	private removeWindowsMap(dWindow: DisplayWindow) {
+	private removeWindowsMap(dWindow: ManagedWindow) {
+		if (this.#windows.get(dWindow.id) !== dWindow) return;
 		this.#windows.delete(dWindow.id);
-		this.updateWindowsStore();
+		this.publishWindowMembership();
 	}
 
-	private updateWindowsStore() {
-		this.#windowsStore.set([...this.#windows.values()]);
+	private publishWindowMembership() {
+		this.#windowsStore.set(Object.freeze([...this.#windows.values()]));
 	}
 
-	private setFocusedWindowZIndex(dWindow: DisplayWindow) {
+	public dispose() {
+		if (this.#disposed) return;
+		this.#disposed = true;
+		this.#unsubscribeClose();
+		if (this.#editingWindow) this.#editingWindow.dWindow.setEditMode(null);
+		this.#editingWindow = null;
+	}
+
+	private setFocusedWindowZIndex(dWindow: ManagedWindow) {
 		// TODO
 		// if (dWindow.alwaysOnTop) {
 		// for(const i of this.#windowsOnTop) {

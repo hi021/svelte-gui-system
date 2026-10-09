@@ -1,8 +1,8 @@
-<script module>
+<script module lang="ts">
 	export { content };
 </script>
 
-{#snippet content(/** @type {Record<String, any> | undefined} */ props)}
+{#snippet content(props?: { text: string })}
 	<p>
 		{props?.text}
 	</p>

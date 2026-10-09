@@ -10,7 +10,7 @@
 	import { ButtonConfiguration } from '$lib/Window/Button/ButtonConfiguration';
 	import { ButtonHelper } from '$lib/Window/Button/ButtonHelper';
 	import { ButtonLayout } from '$lib/Window/Button/ButtonLayout';
-	import { WindowButton } from '$lib/Window/Button/WindowButton';
+	import { WindowButton } from '$lib/Window/Button/WindowButton.svelte';
 	import { content } from '$lib/Window/Contents/Templates/NotificationTemplate.svelte';
 	import DisplayWindowComponentContainer from '$lib/Window/DisplayWindowComponentContainer.svelte';
 	import { NotificationWindow } from '$lib/Window/Templates/NotificationWindow';
@@ -30,10 +30,9 @@
 	const alwaysOnTopBtn = new WindowButton();
 	alwaysOnTopBtn.action = (e, dWindow) => {
 		dWindow.backdropVisible = !dWindow.backdropVisible;
-		dWindow.forceRefreshAllWindows();
 	};
 	alwaysOnTopBtn.text = 'Toggle backdrop idk man';
-	const alwaysOnTopWindowParams: CreateWindowParams = {
+	const alwaysOnTopWindowParams: CreateWindowParams<{ text: string }> = {
 		title: 'TOP',
 		customWindowContainerCss: `background-color: ${new Color(ColorEnum.SUCCESS)};`,
 		customContentContainerCss: `background-color: ${new Color(ColorEnum.WARNING)};`,
@@ -62,15 +61,20 @@
 
 	const clickableBtn = new WindowButton();
 	clickableBtn.text = 'Clicc';
-	clickableBtn.action = () => {
-		++gameState.money;
-	};
+	clickableBtn.action = () => earnMoney();
 	windowManager.createWindow({
 		objectClass: 'clickable',
 		anchor: AnchorPoint.BOTTOM_LEFT,
-		props: { toClick: gameState },
-		content: clickable,
+		props: { game: gameState, earn: earnMoney },
+		content: walletContent,
 		buttons: [clickableBtn]
+	});
+	windowManager.createWindow({
+		objectClass: 'clickable',
+		title: 'Wallet II',
+		anchor: AnchorPoint.BOTTOM_RIGHT,
+		props: { game: gameState, earn: earnMoney },
+		content: walletContent
 	});
 
 	windowManager.createWindow({
@@ -84,19 +88,20 @@
 	function playSenko() {
 		audioManager.replayByTag('poggers');
 	}
+	function earnMoney() {
+		gameState.money += 1;
+	}
 </script>
 
 <!-- EXAMPLE WINDOW CONTENT - CAN BE MOVED TO SEPARATE .SVELTE COMPONENTS (see src/Window/Contents) -->
-{#snippet clickable(props?: { toClick?: GameState })}
+{#snippet walletContent(props?: { game: GameState; earn: () => void })}
 	<p>
-		Current cliccy: {props?.toClick?.money}
+		Wallet balance: ${props?.game.money ?? -1}
 	</p>
-	<p>Paragraph no. 2 hello!</p>
-	<input type="text" value="Wowww this window extends so farrr" />
-	<p>wouldn't it suck if the overflow:auto broke?</p>
+	<button onclick={() => props?.earn()}>big money</button>
 {/snippet}
 
-{#snippet senkoPogContent()}
+{#snippet senkoPogContent(props?: Record<string, unknown>)}
 	<img
 		class="unselectable"
 		src="https://poggers.moe/static/media/senko-poggers.ad2cb0b444bab5076f61.png"

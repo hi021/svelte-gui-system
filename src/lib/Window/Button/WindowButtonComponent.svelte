@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { DisplayWindow } from '../DisplayWindow';
-	import type { WindowButton } from './WindowButton';
+	import type { DisplayWindow } from '../DisplayWindow.svelte';
+	import type { WindowButton } from './WindowButton.svelte';
 
-	let { button, dWindow }: { button: WindowButton; dWindow: DisplayWindow } = $props();
-	const cssIconClass = !button.text && button.icon ? 'btn-icon' : 'btn-text';
+	let { button, dWindow }: { button: WindowButton; dWindow: DisplayWindow<any> } = $props();
+	let cssIconClass = $derived(!button.text && button.icon ? 'btn-icon' : 'btn-text');
 </script>
 
 <button

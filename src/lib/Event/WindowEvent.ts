@@ -1,10 +1,10 @@
-import type { DisplayWindow } from '$lib/Window/DisplayWindow';
+import type { DisplayWindow } from '$lib/Window/DisplayWindow.svelte';
 import { GameEvent } from './GameEvent';
 
 export abstract class WindowEvent extends GameEvent {
-	public sourceWindow: DisplayWindow;
+	public sourceWindow: DisplayWindow<any>;
 
-	public constructor(sourceWindow: DisplayWindow) {
+	public constructor(sourceWindow: DisplayWindow<any>) {
 		super();
 		this.sourceWindow = sourceWindow;
 	}

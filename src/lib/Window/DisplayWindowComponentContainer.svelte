@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { EventService } from '$lib/Event/EventService';
 	import { WindowCloseEvent } from '$lib/Event/WindowCloseEvent';
-	import { Vec2 } from '$lib/Util/Vec2';
-	import { onDestroy } from 'svelte';
-	import { DisplayWindow } from './DisplayWindow';
+	import { onMount } from 'svelte';
 	import DisplayWindowComponent from './DisplayWindowComponent.svelte';
 	import type { WindowService } from './WindowService';
 
@@ -11,29 +9,19 @@
 
 	const handleDrag = (e: MouseEvent) => windowManager.handleDrag(e);
 	const handleDragEnd = (e: MouseEvent) => windowManager.handleDragEnd(e);
-	document.addEventListener('mousemove', handleDrag);
-	document.addEventListener('mouseup', handleDragEnd);
 
-	type WindowView = {
-		dWindow: DisplayWindow;
-	};
-
-	let windowObjects: WindowView[] = $state([]);
-	const windowsUnsubscriber = (() =>
-		// terrible ugly frickin wrapping to force break identity equality so Svelte refreshes my stuff
-		windowManager.windows.subscribe((value) => {
-			windowObjects = value.map((dWindow) => ({
-				dWindow
-			}));
-		}))();
-	onDestroy(() => {
-		windowsUnsubscriber();
-		document.removeEventListener('mousemove', handleDrag);
-		document.removeEventListener('mouseup', handleDragEnd);
+	const windows = $derived(windowManager.windows);
+	onMount(() => {
+		document.addEventListener('mousemove', handleDrag);
+		document.addEventListener('mouseup', handleDragEnd);
+		return () => {
+			document.removeEventListener('mousemove', handleDrag);
+			document.removeEventListener('mouseup', handleDragEnd);
+		};
 	});
 </script>
 
-{#each windowObjects as { dWindow } (dWindow.id)}
+{#each $windows as dWindow (dWindow.id)}
 	<DisplayWindowComponent
 		{dWindow}
 		onclose={(e) => EventService.dispatchEvent(new WindowCloseEvent(dWindow))}
@@ -46,9 +34,9 @@
 			if (dWindow.editMode !== 'moving') return;
 
 			if (dWindow.maximized) {
-				dWindow.maximized = false;
+				windowManager.toggleMaximizeWindow(dWindow);
 				// TODO!: handle anchors! - snaps to bottom for bottom anchors, and won't work with center anchors either
-				dWindow.position = new Vec2(dWindow.anchor.x * (e.clientX - dWindow.size.x / 2), 0);
+				dWindow.setPosition(dWindow.anchor.x * (e.clientX - dWindow.size.x / 2), 0);
 			}
 			windowManager.handleDragStart(e, dWindow, dWindow.editMode);
 		}}

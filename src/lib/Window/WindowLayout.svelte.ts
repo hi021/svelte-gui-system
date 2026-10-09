@@ -1,18 +1,25 @@
-import type { FieldsOnly } from '$lib/Util/Util';
 import { ButtonLayout } from './Button/ButtonLayout';
 
-export class WindowLayout {
-	public title = true;
-	public minimizeButton = true;
-	public maximizeButton = true;
-	public closeButton = true;
-	public buttonLayout = ButtonLayout.EVENLY_SPACED;
-	public borderRadius = 8; //px
-	public padding = 8; //px
+export type WindowLayoutOptions = {
+	title?: boolean;
+	minimizeButton?: boolean;
+	maximizeButton?: boolean;
+	closeButton?: boolean;
+	buttonLayout?: ButtonLayout;
+	borderRadius?: number;
+	padding?: number;
+};
 
-	public constructor(
-		options?: Partial<FieldsOnly<Omit<WindowLayout, 'fullTitleBar' | 'titleBarButtons' | 'buttonContainerClass'>>>
-	) {
+export class WindowLayout {
+	public title = $state(true);
+	public minimizeButton = $state(true);
+	public maximizeButton = $state(true);
+	public closeButton = $state(true);
+	public buttonLayout = $state(ButtonLayout.EVENLY_SPACED);
+	public borderRadius = $state(8);
+	public padding = $state(8);
+
+	public constructor(options?: WindowLayoutOptions) {
 		if (!options) return;
 
 		this.title = options.title ?? true;

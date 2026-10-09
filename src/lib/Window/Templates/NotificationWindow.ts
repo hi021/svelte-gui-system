@@ -1,19 +1,12 @@
 import { ButtonConfiguration } from '../Button/ButtonConfiguration';
 import { ButtonHelper } from '../Button/ButtonHelper';
 import { ButtonLayout } from '../Button/ButtonLayout';
-import type { WindowButtonAction } from '../Button/WindowButton';
+import type { WindowButtonAction } from '../Button/WindowButton.svelte';
 import { content } from '../Contents/Templates/NotificationTemplate.svelte';
-import { DisplayWindow } from '../DisplayWindow';
-import { WindowLayout } from '../WindowLayout';
+import { DisplayWindow } from '../DisplayWindow.svelte';
+import { WindowLayout } from '../WindowLayout.svelte';
 
-export class NotificationWindow extends DisplayWindow {
-	static #windowLayout = new WindowLayout();
-	static {
-		this.#windowLayout.maximizeButton = false;
-		this.#windowLayout.minimizeButton = false;
-		this.#windowLayout.buttonLayout = ButtonLayout.CENTERED;
-	}
-
+export class NotificationWindow extends DisplayWindow<{ text: string }> {
 	public constructor(
 		text: string,
 		title?: string,
@@ -26,7 +19,11 @@ export class NotificationWindow extends DisplayWindow {
 		this.maximizable = false;
 		this.minimizable = false;
 		this.objectClass = 'NOTIFICATION';
-		this.layout = NotificationWindow.#windowLayout;
+		this.layout = new WindowLayout({
+			maximizeButton: false,
+			minimizeButton: false,
+			buttonLayout: ButtonLayout.CENTERED
+		});
 		this.props = { text };
 		if (title) this.title = title;
 
