@@ -1,5 +1,4 @@
 import { EventService } from '$lib/Event/EventService';
-import { WindowModificationEvent } from '$lib/Event/WindowModificationEvent';
 import { PredicateMode } from '$lib/Util/PredicateMode';
 import { isEnumValue } from '$lib/Util/Util';
 import { Vec4 } from '$lib/Util/Vec4';
@@ -73,8 +72,6 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 			this.position = new Vec2();
 		}
 		this.#minimized = minimized;
-
-		EventService.dispatchEvent(new WindowModificationEvent(this));
 	}
 
 	public get maximized() {
@@ -85,8 +82,6 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		this.#minimized = false;
 		if (!maximized) this.position = new Vec2();
 		this.#maximized = maximized;
-
-		EventService.dispatchEvent(new WindowModificationEvent(this));
 	}
 
 	public get windowState() {
@@ -222,7 +217,6 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		if (mode !== 'moving' && this.maximized) return;
 
 		this.#editMode = mode;
-		EventService.dispatchEvent(new WindowModificationEvent(this));
 	}
 
 	public get content() {
