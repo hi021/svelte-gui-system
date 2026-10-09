@@ -26,7 +26,7 @@ export class KeybindService {
 	public static getEventKeyAction(e: KeyboardEvent) {
 		const key = KeybindService.getEventKey(e);
 		const keybinds = KeybindService.MODIFIERS_TO_KEYBINDS_MAP.get(KeybindService.getEventModifiers(e)) ?? [];
-		return keybinds.find((keybind) => keybind.key == key)?.action;
+		return keybinds.find((keybind) => keybind.key === key)?.action;
 	}
 
 	private static buildModifiersToKeybindsMap() {
@@ -50,14 +50,14 @@ export class KeybindService {
 		return KeybindService.getModifiersBitfield({ altKey: false, ctrlKey: false, shiftKey: true } as KeyModifiers);
 	}
 	private static getEventModifiers(e: KeyboardEvent) {
-		const altKey = e.altKey || e.key == 'Alt';
-		const ctrlKey = e.ctrlKey || e.key == 'Control';
-		const shiftKey = e.shiftKey || e.key == 'Shift';
+		const altKey = e.altKey || e.key === 'Alt';
+		const ctrlKey = e.ctrlKey || e.key === 'Control';
+		const shiftKey = e.shiftKey || e.key === 'Shift';
 		const modifiers: KeyModifiers = { altKey, ctrlKey, shiftKey };
 		return KeybindService.getModifiersBitfield(modifiers);
 	}
 	private static getEventKey(e: KeyboardEvent) {
-		return e.key == 'Shift' || e.key == 'Control' || e.key == 'Alt' || e.key == 'Unidentified' ?
+		return e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Unidentified' ?
 				null
 			:	e.key.toLocaleLowerCase();
 	}

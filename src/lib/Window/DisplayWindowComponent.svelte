@@ -45,7 +45,7 @@
 	}
 
 	function beginPendingMove(e: MouseEvent) {
-		if (e.button != 0) return;
+		if (e.button !== 0) return;
 
 		pendingMove = true;
 		document.addEventListener('mousemove', handlePendingMove);

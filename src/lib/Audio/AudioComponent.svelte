@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import type { Audio } from './Audio.svelte';
 	import { MediaState } from './MediaState';
 
@@ -14,12 +15,14 @@
 		onended: (e: Event, audio: Audio) => boolean | void;
 	} = $props();
 
-	// @ts-expect-error allow svelte components to modify state
-	if (!audio.lazy) audio._state = MediaState.READY;
-	const audioTypeWorkaround = audio as any;
+	let audioTypeWorkaround: any = $derived(audio);
+	onMount(() => {
+		// @ts-expect-error allow svelte components to modify state
+		if (!audio.lazy) audio._state = MediaState.READY;
+	});
 </script>
 
-{#if audio.state != MediaState.UNDEFINED}
+{#if audio.state !== MediaState.UNDEFINED}
 	<audio
 		data-audio-class={audio.objectClass}
 		data-audio-tag={audio.tag}

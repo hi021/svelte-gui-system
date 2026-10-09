@@ -1,4 +1,3 @@
-import { EventService } from '$lib/Event/EventService';
 import { PredicateMode } from '$lib/Util/PredicateMode';
 import { isEnumValue } from '$lib/Util/Util';
 import { Vec4 } from '$lib/Util/Vec4';
@@ -180,14 +179,14 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		if (!isEnumValue(AnchorPoint, anchor))
 			throw new TypeError('Invalid window property value provided - anchor must be a valid AnchorPoint enum');
 
-		const xAnchorSign = anchor == AnchorPoint.TOP_LEFT || anchor == AnchorPoint.BOTTOM_LEFT ? 1 : -1;
-		const yAnchorSign = anchor == AnchorPoint.TOP_LEFT || anchor == AnchorPoint.TOP_RIGHT ? 1 : -1;
+		const xAnchorSign = anchor === AnchorPoint.TOP_LEFT || anchor === AnchorPoint.BOTTOM_LEFT ? 1 : -1;
+		const yAnchorSign = anchor === AnchorPoint.TOP_LEFT || anchor === AnchorPoint.TOP_RIGHT ? 1 : -1;
 		this.#anchor = new Vec2(xAnchorSign, yAnchorSign);
 	}
 	public getAnchorEnum() {
 		// TODO: Support top/bottom center and center-side anchors.
-		if (this.#anchor.x == 1) return this.#anchor.y == 1 ? AnchorPoint.TOP_LEFT : AnchorPoint.BOTTOM_LEFT;
-		if (this.#anchor.x == -1) return this.#anchor.y == 1 ? AnchorPoint.TOP_RIGHT : AnchorPoint.BOTTOM_RIGHT;
+		if (this.#anchor.x === 1) return this.#anchor.y === 1 ? AnchorPoint.TOP_LEFT : AnchorPoint.BOTTOM_LEFT;
+		if (this.#anchor.x === -1) return this.#anchor.y === 1 ? AnchorPoint.TOP_RIGHT : AnchorPoint.BOTTOM_RIGHT;
 		return AnchorPoint.CENTER;
 	}
 
@@ -195,7 +194,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		return this.#zIndex;
 	}
 	public set zIndex(zIndex: number) {
-		if (typeof zIndex != 'number' || isNaN(zIndex))
+		if (typeof zIndex !== 'number' || isNaN(zIndex))
 			throw new TypeError('Invalid window property value provided - zIndex must be a numerical value');
 		this.#zIndex = zIndex;
 	}
@@ -211,9 +210,9 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		return this.#editMode;
 	}
 	public setEditMode(mode: WindowEditMode | null) {
-		if (mode && this.editMode && mode != this.editMode) return;
-		if (mode == 'moving' && !this.draggable) return;
-		if (mode == 'resizing' && !this.resizeable) return;
+		if (mode && this.editMode && mode !== this.editMode) return;
+		if (mode === 'moving' && !this.draggable) return;
+		if (mode === 'resizing' && !this.resizeable) return;
 		if (mode !== 'moving' && this.maximized) return;
 
 		this.#editMode = mode;
@@ -228,7 +227,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	}
 	public setParent(dWindow?: DisplayWindow<any>) {
 		if (!dWindow) return this.removeParent();
-		if (this.#parent == dWindow) return;
+		if (this.#parent === dWindow) return;
 		if (this.#children.includes(dWindow)) return console.warn(`Attempted to set existing child as parent for ${this}`);
 		if (!WindowService.windowExists(dWindow)) return console.warn(`Attempted to set parent for ${this}`);
 
@@ -280,10 +279,10 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		const y = `${this.#position.y}px`;
 
 		let inset = '';
-		if (this.#anchor.y == 1) inset += `top: ${y}; `;
-		else if (this.#anchor.y == -1) inset += `bottom: ${y}; `;
-		if (this.#anchor.x == 1) inset += `left: ${x};`;
-		else if (this.#anchor.x == -1) inset += `right: ${x};`;
+		if (this.#anchor.y === 1) inset += `top: ${y}; `;
+		else if (this.#anchor.y === -1) inset += `bottom: ${y}; `;
+		if (this.#anchor.x === 1) inset += `left: ${x};`;
+		else if (this.#anchor.x === -1) inset += `right: ${x};`;
 
 		return `--x: ${x}; --y: ${y}; ${inset}`;
 	}
@@ -327,13 +326,13 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public matchesPredicates(predicates: Partial<{ [K in keyof this]: this[K] }>, mode: PredicateMode) {
 		for (const property in predicates) {
 			if (this[property] == predicates[property]) {
-				if (mode == PredicateMode.ANY) return true;
-			} else if (mode == PredicateMode.ALL) {
+				if (mode === PredicateMode.ANY) return true;
+			} else if (mode === PredicateMode.ALL) {
 				return false;
 			}
 		}
 
-		return mode == PredicateMode.ALL;
+		return mode === PredicateMode.ALL;
 	}
 
 	public toString() {

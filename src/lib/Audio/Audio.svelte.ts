@@ -62,7 +62,7 @@ export class Audio {
 	}
 
 	public play() {
-		if (this._state == MediaState.UNDEFINED) {
+		if (this._state === MediaState.UNDEFINED) {
 			this._state = MediaState.READY;
 			return setTimeout(() => this.play());
 		}
@@ -75,7 +75,7 @@ export class Audio {
 		if (this._element) this._element.currentTime = 0;
 	}
 	public replay() {
-		if (this._state == MediaState.PLAYING) this.rewind();
+		if (this._state === MediaState.PLAYING) this.rewind();
 		else this.play();
 	}
 	public pause() {

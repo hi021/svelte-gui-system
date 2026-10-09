@@ -26,8 +26,8 @@ export class Color {
 	public stringValue: string | undefined; // any css value
 
 	public constructor(color: ColorEnum | string) {
-		if (typeof color == 'number') this.enumValue = color;
-		else if (typeof color == 'string') this.stringValue = color;
+		if (typeof color === 'number') this.enumValue = color;
+		else if (typeof color === 'string') this.stringValue = color;
 		else
 			throw new Error(
 				'Unable to create an instance of Color - invalid argument type, must be either a ColorEnum or string'

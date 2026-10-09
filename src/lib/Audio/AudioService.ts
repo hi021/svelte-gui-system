@@ -86,7 +86,7 @@ export class AudioService {
 		if (!path) return undefined;
 
 		for (const [_, audioObject] of this.#audioObjects) {
-			if (audioObject.path == path) return audioObject;
+			if (audioObject.path === path) return audioObject;
 		}
 
 		return undefined;

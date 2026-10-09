@@ -118,7 +118,7 @@ export class WindowService {
 
 	public getFirstWindowByTitle(title: string) {
 		for (const [_, dWindow] of this.#windows) {
-			if (dWindow.title == title) return dWindow;
+			if (dWindow.title === title) return dWindow;
 		}
 	}
 
@@ -134,7 +134,7 @@ export class WindowService {
 
 	public closeWindow(dWindow: ManagedWindow) {
 		if (this.#windows.get(dWindow.id) !== dWindow) return false;
-		if (this.#focusedWindow?.id == dWindow.id) this.#focusedWindow = null;
+		if (this.#focusedWindow?.id === dWindow.id) this.#focusedWindow = null;
 		if (dWindow.alwaysOnTop) this.#windowsOnTop.delete(dWindow.id);
 		if (this.#editingWindow?.dWindow === dWindow) {
 			dWindow.setEditMode(null);
@@ -167,7 +167,7 @@ export class WindowService {
 		// TODO handle Center anchor
 
 		const offset =
-			mode == 'moving' ?
+			mode === 'moving' ?
 				new Vec2(dWindow.anchor.x * dWindow.position.x - e.clientX, dWindow.anchor.y * dWindow.position.y - e.clientY)
 			:	new Vec2(dWindow.anchor.x * dWindow.size.x - e.clientX, dWindow.anchor.y * dWindow.size.y - e.clientY);
 		this.#editingWindow = { dWindow, mode, offset };
@@ -222,7 +222,7 @@ export class WindowService {
 	}
 
 	public isNodeDisplayWindow(node: EventTarget) {
-		return node instanceof HTMLElement && node.nodeName == 'DIV' && node.hasAttribute('data-window-class');
+		return node instanceof HTMLElement && node.nodeName === 'DIV' && node.hasAttribute('data-window-class');
 	}
 
 	public createWindow<P extends object = Record<string, unknown>>(options: CreateWindowParams<P>): DisplayWindow<P> {
