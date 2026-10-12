@@ -1,31 +1,38 @@
 {
-  "name": "svelte-gui-system",
-  "version": "0.1.0",
-  "description": "Customizable web-based desktop interface library with i18n, audio, and floating windows",
-  "type": "module",
-  "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "vite preview",
-    "format": "prettier ./src --write",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "tauri": "tauri"
-  },
-  "license": "ISC",
-  "dependencies": {
-    "@tauri-apps/api": "^2.12.1",
-    "@tauri-apps/plugin-opener": "^2.7.0"
-  },
-  "devDependencies": {
-    "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.70.3",
-    "@sveltejs/vite-plugin-svelte": "^7.3.1",
-    "@tauri-apps/cli": "^2.12.1",
-    "prettier-plugin-svelte": "^3.5.2",
-    "svelte": "^5.57.2",
-    "svelte-check": "^4.7.6",
-    "typescript": "~7.0.2",
-    "vite": "^8.3.4"
-  }
+	"name": "svelte-gui-system",
+	"version": "0.1.0",
+	"description": "Customizable web-based desktop interface library with audio, events, and floating windows",
+	"type": "module",
+	"svelte": "./dist/index.js",
+	"types": "./dist/types/index.d.ts",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"svelte": "./dist/index.js",
+			"types": "./dist/types/index.d.ts"
+		},
+		"./styles.css": "./dist/styles.css"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"scripts": {
+		"build": "vite build && pnpm build:types && node scripts/finalize-types.js",
+		"build:types": "tsc -p tsconfig.json",
+		"check": "pnpm build:types",
+		"clean": "rm -rf dist",
+		"format": "prettier ./src --write"
+	},
+	"license": "ISC",
+	"peerDependencies": {
+		"svelte": "^5.57.2"
+	},
+	"devDependencies": {
+		"@sveltejs/vite-plugin-svelte": "^7.3.1",
+		"prettier-plugin-svelte": "^4.1.1",
+		"svelte": "^5.57.2",
+		"typescript": "~7.0.2",
+		"vite": "^8.3.4"
+	}
 }

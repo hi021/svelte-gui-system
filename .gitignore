@@ -3,6 +3,7 @@ node_modules
 .svelte-kit
 .vscode
 build
+dist
 package
 .env
 .env.*

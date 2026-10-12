@@ -1,0 +1,16 @@
+@import './styles/theme.css';
+@import './styles/windows.css';
+@import './styles/icons.css';
+@import './styles/scrollbar.css';
+@import './styles/layouts.css';
+
+.btn-icon {
+	line-height: 0;
+}
+
+.unselectable {
+	-webkit-user-drag: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+}

@@ -1,12 +1,12 @@
-import { PredicateMode } from '$lib/Util/PredicateMode';
-import { isEnumValue } from '$lib/Util/Util';
-import { Vec4 } from '$lib/Util/Vec4';
-import { WindowService } from '$lib/Window/WindowService';
 import type { Snippet } from 'svelte';
+import { PredicateMode } from '../Util/PredicateMode';
+import { isEnumValue } from '../Util/Util';
 import { Vec2 } from '../Util/Vec2';
+import { Vec4 } from '../Util/Vec4';
 import { AnchorPoint } from './AnchorPoint';
 import { WindowButton } from './Button/WindowButton.svelte';
 import { WindowLayout } from './WindowLayout.svelte';
+import { WindowService } from './WindowService';
 
 export type WindowEditMode = 'moving' | 'resizing' | null;
 

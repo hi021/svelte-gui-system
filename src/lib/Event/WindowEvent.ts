@@ -1,4 +1,4 @@
-import type { DisplayWindow } from '$lib/Window/DisplayWindow.svelte';
+import type { DisplayWindow } from '../Window/DisplayWindow.svelte';
 import { GameEvent } from './GameEvent';
 
 export abstract class WindowEvent extends GameEvent {

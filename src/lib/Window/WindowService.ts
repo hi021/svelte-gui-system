@@ -1,6 +1,6 @@
-import { EventService } from '$lib/Event/EventService';
 import type { Snippet } from 'svelte';
 import { readonly, writable, type Readable } from 'svelte/store';
+import { EventService } from '../Event/EventService';
 import { PredicateMode } from '../Util/PredicateMode';
 import { Vec2 } from '../Util/Vec2';
 import { AnchorPoint } from './AnchorPoint';

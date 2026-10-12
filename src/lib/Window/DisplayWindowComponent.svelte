@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { KeyAction } from '$lib/Keybind/KeyActionEnum';
-	import { KeybindService } from '$lib/Keybind/KeybindService';
 	import { onMount } from 'svelte';
 	import { fade, scale, slide } from 'svelte/transition';
+	import { KeyAction } from '../Keybind/KeyActionEnum';
+	import { KeybindService } from '../Keybind/KeybindService';
 	import WindowButton from './Button/WindowButtonComponent.svelte';
 	import type { DisplayWindow } from './DisplayWindow.svelte';
 

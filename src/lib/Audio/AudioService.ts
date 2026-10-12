@@ -1,5 +1,5 @@
-import type { MethodsOnly } from '$lib/Util/Util';
 import { writable } from 'svelte/store';
+import type { MethodsOnly } from '../Util/Util';
 import { Audio } from './Audio.svelte';
 
 export class AudioService {

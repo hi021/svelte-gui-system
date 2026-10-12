@@ -1,5 +1,5 @@
-import { EventService } from '$lib/Event/EventService';
-import { WindowCloseEvent } from '$lib/Event/WindowCloseEvent';
+import { EventService } from '../../Event/EventService';
+import { WindowCloseEvent } from '../../Event/WindowCloseEvent';
 import type { DisplayWindow } from '../DisplayWindow.svelte';
 import { ButtonConfiguration } from './ButtonConfiguration';
 import { WindowButton, type WindowButtonAction } from './WindowButton.svelte';

@@ -1,0 +1,29 @@
+.flex-centered,
+.flex-evenly-spaced,
+.flex-ltr,
+.flex-rtl,
+.flex-space-between {
+	display: flex;
+	flex-direction: row;
+}
+
+.flex-centered {
+	justify-content: center;
+}
+
+.flex-evenly-spaced {
+	justify-content: space-evenly;
+}
+
+.flex-ltr {
+	justify-content: left;
+}
+
+.flex-rtl {
+	flex-direction: row-reverse;
+	justify-content: right;
+}
+
+.flex-space-between {
+	justify-content: space-between;
+}

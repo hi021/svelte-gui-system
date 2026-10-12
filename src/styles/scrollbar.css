@@ -1,0 +1,44 @@
+.scrollbar-dark::-webkit-scrollbar,
+.scrollbar-small::-webkit-scrollbar {
+	display: initial;
+}
+.scrollbar-dark::-webkit-scrollbar-button,
+.scrollbar-small::-webkit-scrollbar-button {
+	display: none;
+}
+
+.scrollbar-small::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+.scrollbar-small::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 999px;
+}
+.scrollbar-small::-webkit-scrollbar-thumb {
+	background: rgba(0, 0, 0, 0.3);
+	border-radius: 999px;
+}
+.scrollbar-small::-webkit-scrollbar-thumb:hover {
+	background: rgba(0, 0, 0, 0.4);
+}
+.scrollbar-small::-webkit-scrollbar-corner {
+	background: rgba(0, 0, 0, 0.3);
+}
+
+.scrollbar-dark::-webkit-scrollbar {
+	width: 14px;
+	height: 14px;
+}
+.scrollbar-dark::-webkit-scrollbar-track {
+	background: var(--color-dark);
+}
+.scrollbar-dark::-webkit-scrollbar-thumb {
+	background: var(--color-darker);
+}
+.scrollbar-dark::-webkit-scrollbar-thumb:hover {
+	background: color-mix(in srgb, var(--color-darker) 50%, var(--color-lighter));
+}
+.scrollbar-dark::-webkit-scrollbar-corner {
+	background: var(--color-darker);
+}

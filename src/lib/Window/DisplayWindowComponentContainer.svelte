@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { EventService } from '$lib/Event/EventService';
-	import { WindowCloseEvent } from '$lib/Event/WindowCloseEvent';
 	import { onMount } from 'svelte';
+	import { EventService } from '../Event/EventService';
+	import { WindowCloseEvent } from '../Event/WindowCloseEvent';
 	import DisplayWindowComponent from './DisplayWindowComponent.svelte';
 	import type { WindowService } from './WindowService';
 
