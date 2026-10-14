@@ -73,12 +73,19 @@
 		}
 	};
 
+	const handleMousedown = (e: MouseEvent) => {
+		onfocus(e);
+		onresizestart(e);
+	}
+
 	onMount(() => {
 		dWindowElement.addEventListener('keyup', handleKeyUp);
 		dWindowElement.addEventListener('keydown', handleKeyDown);
+		dWindowElement.addEventListener('mousedown', handleMousedown);
 		return () => {
 			dWindowElement.removeEventListener('keyup', handleKeyUp);
 			dWindowElement.removeEventListener('keydown', handleKeyDown);
+			dWindowElement.removeEventListener('mousedown', handleMousedown);
 			cancelPendingMove();
 		};
 	});
@@ -109,10 +116,6 @@
 	tabindex="0"
 	{onfocus}
 	{onblur}
-	onmousedown={(e) => {
-		onfocus(e);
-		onresizestart(e);
-	}}
 	role="dialog">
 	{#if dWindow.layout.fullTitleBar}
 		<div class="display-window-titlebar" onmousedown={beginPendingMove} ondblclick={onmaximize} role="contentinfo">

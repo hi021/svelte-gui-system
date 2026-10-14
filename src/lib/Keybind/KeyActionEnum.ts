@@ -1,6 +1,6 @@
 export enum KeyAction {
 	WINDOW_CLOSE,
-	WINDOW_OK,
+	WINDOW_OK, // TODO: implement
 	WINDOW_MINIMIZE,
 	WINDOW_MAXIMIZE,
 	WINDOW_RESIZE_MOD

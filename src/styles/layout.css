@@ -1,10 +1,25 @@
+.row,
+.column,
+.row-center,
+.column-center,
+.flex-fill,
 .flex-centered,
 .flex-evenly-spaced,
+.flex-space-between,
 .flex-ltr,
-.flex-rtl,
-.flex-space-between {
+.flex-rtl {
 	display: flex;
 	flex-direction: row;
+}
+
+.column,
+.column-center {
+	flex-direction: column;
+}
+.column-center,
+.row-center {
+	align-items: center;
+	justify-content: center;
 }
 
 .flex-centered {
@@ -13,6 +28,10 @@
 
 .flex-evenly-spaced {
 	justify-content: space-evenly;
+}
+
+.flex-space-between {
+	justify-content: space-between;
 }
 
 .flex-ltr {
@@ -24,6 +43,6 @@
 	justify-content: right;
 }
 
-.flex-space-between {
-	justify-content: space-between;
+.flex-fill {
+	flex: auto 1 1;
 }

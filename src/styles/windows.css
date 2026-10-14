@@ -32,6 +32,7 @@
 	background: linear-gradient(166deg, var(--color-info), color-mix(in srgb, var(--color-info) 10%, transparent));
 }
 .display-window-title {
+	line-height: 1;
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
@@ -68,6 +69,7 @@
 }
 
 .display-window-titlebar-btn-container > button {
+	cursor: default;
 	background-color: color-mix(in srgb, var(--color-darkish) 75%, transparent);
 }
 .display-window-titlebar-btn-container > button:hover {

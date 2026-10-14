@@ -22,10 +22,11 @@ export class KeybindService {
 		KeybindService.buildActionsToKeybindsMap();
 	}
 
-	// TODO consider returning multiple in an array
+	// TODO consider returning multiple in an array (filter())
 	public static getEventKeyAction(e: KeyboardEvent) {
 		const key = KeybindService.getEventKey(e);
 		const keybinds = KeybindService.MODIFIERS_TO_KEYBINDS_MAP.get(KeybindService.getEventModifiers(e)) ?? [];
+		console.debug('getEventKeyAction key:', key, 'modifiers:', KeybindService.getEventModifiers(e), 'keybinds:', keybinds, 'matching:', keybinds.find((keybind) => keybind.key === key)); //TODO debug
 		return keybinds.find((keybind) => keybind.key === key)?.action;
 	}
 
@@ -58,7 +59,7 @@ export class KeybindService {
 	}
 	private static getEventKey(e: KeyboardEvent) {
 		return e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Unidentified' ?
-				null
+				undefined
 			:	e.key.toLocaleLowerCase();
 	}
 	private static getModifiersBitfield(modifiers?: KeyModifiers) {

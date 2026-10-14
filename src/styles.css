@@ -2,7 +2,7 @@
 @import './styles/windows.css';
 @import './styles/icons.css';
 @import './styles/scrollbar.css';
-@import './styles/layouts.css';
+@import './styles/layout.css';
 
 .btn-icon {
 	line-height: 0;
