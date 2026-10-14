@@ -76,7 +76,7 @@
 	const handleMousedown = (e: MouseEvent) => {
 		onfocus(e);
 		onresizestart(e);
-	}
+	};
 
 	onMount(() => {
 		dWindowElement.addEventListener('keyup', handleKeyUp);

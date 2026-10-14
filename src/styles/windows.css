@@ -18,7 +18,7 @@
 	z-index: var(--z-index);
 }
 .display-window-container[data-edit-mode='resizing'] {
-	cursor: nesw-resize;
+	cursor: move;
 }
 .display-window-container:not([data-window-state='maximized']) {
 	border-radius: var(--border-radius);

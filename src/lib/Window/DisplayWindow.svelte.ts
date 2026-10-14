@@ -273,18 +273,18 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	}
 
 	public get positioningCss() {
-		if (this.maximized) return 'inset: 0;';
+		if (this.maximized) return 'transform: translate3d(0, 0, 0);';
 
 		const x = `${this.#position.x}px`;
 		const y = `${this.#position.y}px`;
+		const xTranslate = `${this.#anchor.x * this.#position.x}px`;
+		const yTranslate = `${this.#anchor.y * this.#position.y}px`;
+		// TODO: support center anchors AND move this to be const
+		const xAnchor = this.#anchor.x === 1 ? 'left' : 'right';
+		const yAnchor = this.#anchor.y === 1 ? 'top' : 'bottom';
 
-		let inset = '';
-		if (this.#anchor.y === 1) inset += `top: ${y}; `;
-		else if (this.#anchor.y === -1) inset += `bottom: ${y}; `;
-		if (this.#anchor.x === 1) inset += `left: ${x};`;
-		else if (this.#anchor.x === -1) inset += `right: ${x};`;
-
-		return `--x: ${x}; --y: ${y}; ${inset}`;
+		const translate = `translate3d(${xTranslate}, ${yTranslate}, 0)`;
+		return `${xAnchor}: 0; ${yAnchor}: 0; --x: ${x}; --y: ${y}; transform: ${translate};`;
 	}
 
 	public get widthCss() {
@@ -301,6 +301,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public get windowContainerCss() {
 		return `${this.positioningCss}
 		${this.widthCss}
+		${this.maximized ? this.heightCss : ''}
     --border-radius: ${this.layout.borderRadius}px;
     --z-index: ${this.zIndex};
     ${this.customWindowContainerCss}`;
@@ -308,7 +309,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 
 	public get contentContainerCss() {
 		const overflow = this.#size.x < 72 || this.#size.y < 72 ? 'overflow: hidden;' : '';
-		return `${this.heightCss}
+		return `${this.maximized ? '' : this.heightCss}
 		${overflow}
     --padding: ${this.layout.padding}px;
     ${this.customContentContainerCss}`;

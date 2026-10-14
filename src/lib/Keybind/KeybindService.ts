@@ -26,7 +26,16 @@ export class KeybindService {
 	public static getEventKeyAction(e: KeyboardEvent) {
 		const key = KeybindService.getEventKey(e);
 		const keybinds = KeybindService.MODIFIERS_TO_KEYBINDS_MAP.get(KeybindService.getEventModifiers(e)) ?? [];
-		console.debug('getEventKeyAction key:', key, 'modifiers:', KeybindService.getEventModifiers(e), 'keybinds:', keybinds, 'matching:', keybinds.find((keybind) => keybind.key === key)); //TODO debug
+		console.debug(
+			'getEventKeyAction key:',
+			key,
+			'modifiers:',
+			KeybindService.getEventModifiers(e),
+			'keybinds:',
+			keybinds,
+			'matching:',
+			keybinds.find((keybind) => keybind.key === key)
+		); //TODO debug
 		return keybinds.find((keybind) => keybind.key === key)?.action;
 	}
 
