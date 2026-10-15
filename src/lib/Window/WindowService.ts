@@ -214,15 +214,9 @@ export class WindowService {
 		if (editingWindow.mode === 'moving') {
 			// TODO: revisit after changing to translate3d
 			// TODO: handle anchors after split to anchor X & Y
-			dWindow.setPosition(
-				 (e.clientX + editingWindow.offset.x),
-			(e.clientY + editingWindow.offset.y)
-			);
+			dWindow.setPosition(e.clientX + editingWindow.offset.x, e.clientY + editingWindow.offset.y);
 		} else {
-			dWindow.setSize(
-				 (e.clientX + editingWindow.offset.x),
-			(e.clientY + editingWindow.offset.y)
-			);
+			dWindow.setSize(e.clientX + editingWindow.offset.x, e.clientY + editingWindow.offset.y);
 		}
 	}
 

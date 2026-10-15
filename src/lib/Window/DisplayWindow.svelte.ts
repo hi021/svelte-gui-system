@@ -176,7 +176,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public get anchor() {
 		return new AnchorVec(this.#anchor.x, this.#anchor.y);
 	}
-		public set anchor(anchor: AnchorVec) {
+	public set anchor(anchor: AnchorVec) {
 		this.#anchor = new AnchorVec(anchor.x, anchor.y);
 	}
 	public setAnchorEnum(x: AnchorPointX, y: AnchorPointY) {
@@ -267,15 +267,21 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		this.#id = 0;
 	}
 
+	public get anchorCss() {
+		const x = this.#anchor.x === AnchorPointX.CENTER ? 'left: calc(50% - var(--w) / 2)' : `${this.#anchor.x}: 0`;
+		const y = this.#anchor.y === AnchorPointY.CENTER ? 'top: calc(50% - var(--h) / 2)' : `${this.#anchor.y}: 0`;
+
+		return `${x}; ${y};`;
+	}
+
 	public get positioningCss() {
 		if (this.maximized) return 'transform: translate3d(0, 0, 0);';
 
 		const x = `${this.#position.x}px`;
 		const y = `${this.#position.y}px`;
-		// TODO: support center anchors AND move this to be const
-
 		const translate = `translate3d(${x}, ${y}, 0)`;
-		return `${this.#anchor.x}: 0; ${this.#anchor.y}: 0; --x: ${x}; --y: ${y}; transform: ${translate};`;
+
+		return `${this.anchorCss} --x: ${x}; --y: ${y}; transform: ${translate};`;
 	}
 
 	// more rules in windows.css
@@ -285,7 +291,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public get heightCss() {
 		return `--h: ${this.#size.y}px;`;
 	}
-	
+
 	public get windowContainerCss() {
 		return `${this.positioningCss}
 		${this.widthCss}

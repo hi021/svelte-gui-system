@@ -1,5 +1,5 @@
-import { AnchorPointX } from "./AnchorPointX";
-import { AnchorPointY } from "./AnchorPointY";
+import { AnchorPointX } from './AnchorPointX';
+import { AnchorPointY } from './AnchorPointY';
 
 export class AnchorVec {
 	public x = AnchorPointX.LEFT;
