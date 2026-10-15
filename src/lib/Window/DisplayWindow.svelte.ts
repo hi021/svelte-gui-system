@@ -3,10 +3,12 @@ import { PredicateMode } from '../Util/PredicateMode';
 import { isEnumValue } from '../Util/Util';
 import { Vec2 } from '../Util/Vec2';
 import { Vec4 } from '../Util/Vec4';
-import { AnchorPoint } from './AnchorPoint';
+import { AnchorPointX } from './AnchorPointX';
+import { AnchorPointY } from './AnchorPointY';
 import { WindowButton } from './Button/WindowButton.svelte';
 import { WindowLayout } from './WindowLayout.svelte';
 import { WindowService } from './WindowService';
+import { AnchorVec } from './AnchorVec';
 
 export type WindowEditMode = 'moving' | 'resizing' | null;
 
@@ -27,17 +29,17 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	#id = $state(0);
 	#size = $state(new Vec2(600, 400));
 	#position = $state(new Vec2());
-	#dragBoundary = $state(new Vec4()); // TODO
+	#dragBoundary = new Vec4(); // TODO
 	#editMode = $state<WindowEditMode>(null);
 	#minimized = $state(false);
 	#maximized = $state(false);
 	#minSize = $state(new Vec2(160, 36));
 	#maxSize = $state<Vec2 | undefined>();
-	#anchor = $state(new Vec2(1, 1));
+	#anchor = new AnchorVec();
 	#zIndex = $state(WindowService.DEFAULT_Z_INDEX);
 	#buttons = $state<WindowButton[]>([]);
 	#content: Snippet<[P | undefined]>;
-	#parent = $state<DisplayWindow<any> | undefined>();
+	#parent: DisplayWindow<any> | undefined;
 	#children = $state<DisplayWindow<any>[]>([]);
 
 	public constructor(id: number, content: Snippet<[P | undefined]>) {
@@ -172,22 +174,15 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	}
 
 	public get anchor() {
-		return new Vec2(this.#anchor.x, this.#anchor.y);
+		return new AnchorVec(this.#anchor.x, this.#anchor.y);
 	}
-
-	public setAnchorEnum(anchor: AnchorPoint) {
-		if (!isEnumValue(AnchorPoint, anchor))
-			throw new TypeError('Invalid window property value provided - anchor must be a valid AnchorPoint enum');
-
-		const xAnchorSign = anchor === AnchorPoint.TOP_LEFT || anchor === AnchorPoint.BOTTOM_LEFT ? 1 : -1;
-		const yAnchorSign = anchor === AnchorPoint.TOP_LEFT || anchor === AnchorPoint.TOP_RIGHT ? 1 : -1;
-		this.#anchor = new Vec2(xAnchorSign, yAnchorSign);
+		public set anchor(anchor: AnchorVec) {
+		this.#anchor = new AnchorVec(anchor.x, anchor.y);
 	}
-	public getAnchorEnum() {
-		// TODO: Support top/bottom center and center-side anchors.
-		if (this.#anchor.x === 1) return this.#anchor.y === 1 ? AnchorPoint.TOP_LEFT : AnchorPoint.BOTTOM_LEFT;
-		if (this.#anchor.x === -1) return this.#anchor.y === 1 ? AnchorPoint.TOP_RIGHT : AnchorPoint.BOTTOM_RIGHT;
-		return AnchorPoint.CENTER;
+	public setAnchorEnum(x: AnchorPointX, y: AnchorPointY) {
+		if (!isEnumValue(AnchorPointX, x) || !isEnumValue(AnchorPointY, y))
+			throw new TypeError('Invalid window property value provided - anchors must be valid AnchorPoint enums');
+		this.#anchor = new AnchorVec(x, y);
 	}
 
 	public get zIndex() {
@@ -263,7 +258,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		this.removeChildren(this.#children);
 	}
 	private removeChildOnly(dWindow: DisplayWindow<any>) {
-		this.#children = this.#children.filter((child) => child != dWindow);
+		this.#children = this.#children.filter((child) => child !== dWindow);
 	}
 
 	public close() {
@@ -277,40 +272,31 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 
 		const x = `${this.#position.x}px`;
 		const y = `${this.#position.y}px`;
-		const xTranslate = `${this.#anchor.x * this.#position.x}px`;
-		const yTranslate = `${this.#anchor.y * this.#position.y}px`;
 		// TODO: support center anchors AND move this to be const
-		const xAnchor = this.#anchor.x === 1 ? 'left' : 'right';
-		const yAnchor = this.#anchor.y === 1 ? 'top' : 'bottom';
 
-		const translate = `translate3d(${xTranslate}, ${yTranslate}, 0)`;
-		return `${xAnchor}: 0; ${yAnchor}: 0; --x: ${x}; --y: ${y}; transform: ${translate};`;
+		const translate = `translate3d(${x}, ${y}, 0)`;
+		return `${this.#anchor.x}: 0; ${this.#anchor.y}: 0; --x: ${x}; --y: ${y}; transform: ${translate};`;
 	}
 
+	// more rules in windows.css
 	public get widthCss() {
-		const w = this.maximized ? '100%' : `${this.#size.x}px`;
-		return `--w: ${w};`;
+		return `--w: ${this.#size.x}px;`;
 	}
-
 	public get heightCss() {
-		const h = this.maximized ? '100%' : `${this.#size.y}px`;
-		const height = this.minimized ? '' : ' height: var(--h);';
-		return `--h: ${h};${height}`;
+		return `--h: ${this.#size.y}px;`;
 	}
-
+	
 	public get windowContainerCss() {
 		return `${this.positioningCss}
 		${this.widthCss}
-		${this.maximized ? this.heightCss : ''}
+		${this.heightCss}
     --border-radius: ${this.layout.borderRadius}px;
     --z-index: ${this.zIndex};
     ${this.customWindowContainerCss}`;
 	}
-
 	public get contentContainerCss() {
 		const overflow = this.#size.x < 72 || this.#size.y < 72 ? 'overflow: hidden;' : '';
-		return `${this.maximized ? '' : this.heightCss}
-		${overflow}
+		return `${overflow}
     --padding: ${this.layout.padding}px;
     ${this.customContentContainerCss}`;
 	}

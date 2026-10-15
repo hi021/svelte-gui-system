@@ -3,10 +3,10 @@ import { readonly, writable, type Readable } from 'svelte/store';
 import { EventService } from '../Event/EventService';
 import { PredicateMode } from '../Util/PredicateMode';
 import { Vec2 } from '../Util/Vec2';
-import { AnchorPoint } from './AnchorPoint';
 import { WindowButton } from './Button/WindowButton.svelte';
 import { DisplayWindow, type WindowEditMode } from './DisplayWindow.svelte';
 import { WindowLayout } from './WindowLayout.svelte';
+import type { AnchorVec } from './AnchorVec';
 
 type ManagedWindow = DisplayWindow<any>;
 
@@ -37,7 +37,7 @@ export type CreateWindowParams<P extends object = Record<string, unknown>> = {
 	size?: Vec2;
 	minSize?: Vec2;
 	maxSize?: Vec2;
-	anchor?: AnchorPoint;
+	anchor?: AnchorVec;
 	buttons?: WindowButton[];
 	parent?: ManagedWindow;
 	children?: ManagedWindow[];
@@ -167,12 +167,13 @@ export class WindowService {
 	}
 
 	public handleDragStart(e: MouseEvent, dWindow: ManagedWindow, mode: WindowEditMode) {
+		// TODO: handle anchors after split to anchor X & Y
 		// TODO handle Center anchor
 
 		const offset =
 			mode === 'moving' ?
-				new Vec2(dWindow.anchor.x * dWindow.position.x - e.clientX, dWindow.anchor.y * dWindow.position.y - e.clientY)
-			:	new Vec2(dWindow.anchor.x * dWindow.size.x - e.clientX, dWindow.anchor.y * dWindow.size.y - e.clientY);
+				new Vec2(dWindow.position.x - e.clientX, dWindow.position.y - e.clientY)
+			:	new Vec2(dWindow.size.x - e.clientX, dWindow.size.y - e.clientY);
 		this.#editingWindow = { dWindow, mode, offset };
 	}
 
@@ -212,14 +213,15 @@ export class WindowService {
 
 		if (editingWindow.mode === 'moving') {
 			// TODO: revisit after changing to translate3d
+			// TODO: handle anchors after split to anchor X & Y
 			dWindow.setPosition(
-				dWindow.anchor.x * (e.clientX + editingWindow.offset.x),
-				dWindow.anchor.y * (e.clientY + editingWindow.offset.y)
+				 (e.clientX + editingWindow.offset.x),
+			(e.clientY + editingWindow.offset.y)
 			);
 		} else {
 			dWindow.setSize(
-				dWindow.anchor.x * (e.clientX + editingWindow.offset.x),
-				dWindow.anchor.y * (e.clientY + editingWindow.offset.y)
+				 (e.clientX + editingWindow.offset.x),
+			(e.clientY + editingWindow.offset.y)
 			);
 		}
 	}
@@ -281,7 +283,7 @@ export class WindowService {
 		if (options.size) dWindow.size = options.size;
 		if (options.minSize) dWindow.minSize = options.minSize;
 		if (options.maxSize) dWindow.maxSize = options.maxSize;
-		if (options.anchor) dWindow.setAnchorEnum(options.anchor);
+		if (options.anchor) dWindow.anchor = options.anchor;
 		if (options.buttons) dWindow.buttons = options.buttons;
 		if (options.parent != null) dWindow.setParent(options.parent);
 		if (options.children?.length) dWindow.addChildren(options.children);
@@ -298,7 +300,8 @@ export class WindowService {
 	}
 
 	private registerWindow(dWindow: ManagedWindow) {
-		if (this.#disposed) throw new Error('Failed to register window: cannot perform actions with a disposed WindowService');
+		if (this.#disposed)
+			throw new Error('Failed to register window: cannot perform actions with a disposed WindowService');
 		if (this.#windows.size >= WindowService.MAX_WINDOWS)
 			throw new Error(`Failed to register window: maximum number of windows is ${WindowService.MAX_WINDOWS}`);
 

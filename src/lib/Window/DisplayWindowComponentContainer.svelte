@@ -37,7 +37,7 @@
 				windowManager.toggleMaximizeWindow(dWindow);
 				// TODO!: handle anchors! - snaps to bottom for bottom anchors, and won't work with center anchors either
 				// TODO: revisit after changing to translate3d
-				dWindow.setPosition(dWindow.anchor.x * (e.clientX - dWindow.size.x / 2), 0);
+				dWindow.setPosition((e.clientX - dWindow.size.x / 2), 0);
 			}
 			windowManager.handleDragStart(e, dWindow, dWindow.editMode);
 		}}
