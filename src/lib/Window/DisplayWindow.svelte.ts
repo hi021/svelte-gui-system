@@ -128,7 +128,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public get maxSize() {
 		return this.#maxSize ? new Vec2(this.#maxSize.x, this.#maxSize.y) : undefined;
 	}
-	public set maxSize(size: Vec2 | undefined) {
+	public set maxSize(size: Vec2 | null | undefined) {
 		if (size == null) {
 			this.#maxSize = undefined;
 			return;

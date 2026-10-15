@@ -14,11 +14,16 @@
 	width: var(--w);
 	display: flex;
 	flex-direction: column;
-	overflow: hidden;
+	overflow: clip;
+	contain: layout paint;
 	z-index: var(--z-index);
 }
 .display-window-container[data-edit-mode='resizing'] {
 	cursor: move;
+}
+.display-window-container[data-edit-mode='moving'],
+.display-window-container[data-edit-mode='resizing'] {
+	will-change: transform;
 }
 .display-window-container:not([data-window-state='maximized']) {
 	border-radius: var(--border-radius);

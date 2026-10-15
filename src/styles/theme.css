@@ -10,6 +10,7 @@
 	--color-primary: oklch(36% 0.17 300);
 	--color-secondary: oklch(80% 0.1 300);
 	--color-tertiary: oklch(60% 0.17 355);
+	/*TODO: 4th light blue color*/
 
 	--color-error: oklch(57% 0.17 25);
 	--color-warning: oklch(80% 0.17 70);

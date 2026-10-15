@@ -51,12 +51,14 @@ export class WindowService {
 	readonly #windows = new Map<number, ManagedWindow>();
 	readonly #windowsStore = writable<readonly ManagedWindow[]>(Object.freeze([]));
 	readonly #windowsReadable: Readable<readonly ManagedWindow[]> = readonly(this.#windowsStore);
-	#windowsOnTop = new Set<number>();
+	readonly #windowsOnTop = new Set<number>();
 	readonly #windowsByZIndex = new Map<number, number>();
 	#focusedWindow: ManagedWindow | null = null;
 	#editingWindow: EditingWindow | null = null;
+	#pendingDragEvent: MouseEvent | null = null;
+	#dragAnimationFrame: number | null = null;
 	#windowIdSequence = 1;
-	#unsubscribeClose: () => void;
+	readonly #unsubscribeClose: () => void;
 	#disposed = false;
 
 	public constructor() {
@@ -137,6 +139,7 @@ export class WindowService {
 		if (this.#focusedWindow?.id === dWindow.id) this.#focusedWindow = null;
 		if (dWindow.alwaysOnTop) this.#windowsOnTop.delete(dWindow.id);
 		if (this.#editingWindow?.dWindow === dWindow) {
+			this.cancelPendingDragUpdate();
 			dWindow.setEditMode(null);
 			this.#editingWindow = null;
 		}
@@ -174,26 +177,58 @@ export class WindowService {
 	}
 
 	public handleDragEnd(e: MouseEvent) {
-		if (this.#editingWindow) {
-			this.#editingWindow.dWindow.setEditMode(null);
-			this.#editingWindow = null;
-		}
+		if (!this.#editingWindow?.dWindow) return;
+
+		this.applyPendingDragUpdate();
+		this.#editingWindow.dWindow.setEditMode(null);
+		this.#editingWindow = null;
 	}
 
 	public handleDrag(e: MouseEvent) {
 		if (!this.#editingWindow?.dWindow) return;
-		const dWindow = this.#editingWindow.dWindow;
+		this.#pendingDragEvent = e;
+		if (this.#dragAnimationFrame !== null) return;
 
-		if (this.#editingWindow.mode === 'moving') {
+		this.#dragAnimationFrame = requestAnimationFrame(() => {
+			this.#dragAnimationFrame = null;
+			this.applyPendingDragUpdate();
+		});
+	}
+
+	private applyPendingDragUpdate() {
+		if (this.#dragAnimationFrame !== null) {
+			cancelAnimationFrame(this.#dragAnimationFrame);
+			this.#dragAnimationFrame = null;
+		}
+
+		if (this.#pendingDragEvent) this.applyDragUpdate(this.#pendingDragEvent);
+		this.#pendingDragEvent = null;
+	}
+
+	private applyDragUpdate(e: MouseEvent) {
+		const editingWindow = this.#editingWindow;
+		if (!editingWindow?.dWindow) return;
+		const dWindow = editingWindow.dWindow;
+
+		if (editingWindow.mode === 'moving') {
+			// TODO: revisit after changing to translate3d
 			dWindow.setPosition(
-				dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x),
-				dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y)
+				dWindow.anchor.x * (e.clientX + editingWindow.offset.x),
+				dWindow.anchor.y * (e.clientY + editingWindow.offset.y)
 			);
 		} else {
 			dWindow.setSize(
-				dWindow.anchor.x * (e.clientX + this.#editingWindow.offset.x),
-				dWindow.anchor.y * (e.clientY + this.#editingWindow.offset.y)
+				dWindow.anchor.x * (e.clientX + editingWindow.offset.x),
+				dWindow.anchor.y * (e.clientY + editingWindow.offset.y)
 			);
+		}
+	}
+
+	private cancelPendingDragUpdate() {
+		this.#pendingDragEvent = null;
+		if (this.#dragAnimationFrame !== null) {
+			cancelAnimationFrame(this.#dragAnimationFrame);
+			this.#dragAnimationFrame = null;
 		}
 	}
 
@@ -221,7 +256,7 @@ export class WindowService {
 		this.#focusedWindow = null;
 	}
 
-	public isNodeDisplayWindow(node: EventTarget) {
+	public static isNodeDisplayWindow(node: EventTarget) {
 		return node instanceof HTMLElement && node.nodeName === 'DIV' && node.hasAttribute('data-window-class');
 	}
 
@@ -263,7 +298,7 @@ export class WindowService {
 	}
 
 	private registerWindow(dWindow: ManagedWindow) {
-		if (this.#disposed) throw new Error('Cannot register a window with a disposed WindowService');
+		if (this.#disposed) throw new Error('Failed to register window: cannot perform actions with a disposed WindowService');
 		if (this.#windows.size >= WindowService.MAX_WINDOWS)
 			throw new Error(`Failed to register window: maximum number of windows is ${WindowService.MAX_WINDOWS}`);
 
@@ -297,8 +332,10 @@ export class WindowService {
 
 	public dispose() {
 		if (this.#disposed) return;
+
 		this.#disposed = true;
 		this.#unsubscribeClose();
+		this.cancelPendingDragUpdate();
 		if (this.#editingWindow) this.#editingWindow.dWindow.setEditMode(null);
 		this.#editingWindow = null;
 	}
