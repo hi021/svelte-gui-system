@@ -1,14 +1,14 @@
 import type { Snippet } from 'svelte';
 import { PredicateMode } from '../Util/PredicateMode';
-import { isEnumValue } from '../Util/Util';
+import Util from '../Util/Util';
 import { Vec2 } from '../Util/Vec2';
 import { Vec4 } from '../Util/Vec4';
 import { AnchorPointX } from './AnchorPointX';
 import { AnchorPointY } from './AnchorPointY';
+import { AnchorVec } from './AnchorVec';
 import { WindowButton } from './Button/WindowButton.svelte';
 import { WindowLayout } from './WindowLayout.svelte';
 import { WindowService } from './WindowService';
-import { AnchorVec } from './AnchorVec';
 
 export type WindowEditMode = 'moving' | 'resizing' | null;
 
@@ -180,7 +180,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		this.#anchor = new AnchorVec(anchor.x, anchor.y);
 	}
 	public setAnchorEnum(x: AnchorPointX, y: AnchorPointY) {
-		if (!isEnumValue(AnchorPointX, x) || !isEnumValue(AnchorPointY, y))
+		if (!Util.isEnumValue(AnchorPointX, x) || !Util.isEnumValue(AnchorPointY, y))
 			throw new TypeError('Invalid window property value provided - anchors must be valid AnchorPoint enums');
 		this.#anchor = new AnchorVec(x, y);
 	}

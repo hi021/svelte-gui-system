@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { DisplayWindow } from '../DisplayWindow.svelte';
+	import Icon from '../../Icon/Icon.svelte';
 	import type { WindowButton } from './WindowButton.svelte';
 
 	let { button, dWindow }: { button: WindowButton; dWindow: DisplayWindow<any> } = $props();
@@ -12,7 +13,7 @@
 	style={button.customStyle}
 	onclick={(e) => button.action?.(e, dWindow)}>
 	{#if button.icon}
-		<icon class={button.icon}></icon>
+		<Icon tag={button.icon} />
 	{/if}
 	{button.text}
 </button>

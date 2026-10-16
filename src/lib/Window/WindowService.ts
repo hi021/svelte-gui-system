@@ -72,7 +72,7 @@ export class WindowService {
 		return !!dWindow?.id;
 	}
 
-	public get windows(): Readable<readonly ManagedWindow[]> {
+	public get windows() {
 		return this.#windowsReadable;
 	}
 

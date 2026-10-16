@@ -3,6 +3,7 @@
 	import { fade, scale, slide } from 'svelte/transition';
 	import { KeyAction } from '../Keybind/KeyActionEnum';
 	import { KeybindService } from '../Keybind/KeybindService';
+	import Icon from '../Icon/Icon.svelte';
 	import WindowButton from './Button/WindowButtonComponent.svelte';
 	import type { DisplayWindow } from './DisplayWindow.svelte';
 
@@ -133,7 +134,7 @@
 								e.stopPropagation();
 								onminimize(e);
 							}}
-							title="Minimize"><icon class="minimize"></icon></button>
+							title="Minimize"><Icon tag="window-minimize" /></button>
 					{/if}
 					{#if dWindow.layout.maximizeButton}
 						<button
@@ -142,7 +143,7 @@
 								e.stopPropagation();
 								onmaximize(e);
 							}}
-							title="Maximize"><icon class="maximize"></icon></button>
+							title="Maximize"><Icon tag="window-maximize" /></button>
 					{/if}
 					{#if dWindow.layout.closeButton}
 						<button
@@ -151,7 +152,7 @@
 								e.stopPropagation();
 								onclose(e);
 							}}
-							title="Close"><icon class="add rot-45"></icon></button>
+							title="Close"><Icon tag="window-close" /></button>
 					{/if}
 				</span>
 			{/if}
