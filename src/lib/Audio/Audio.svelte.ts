@@ -64,7 +64,8 @@ export class Audio {
 	public play() {
 		if (this._state === MediaState.UNDEFINED) {
 			this._state = MediaState.READY;
-			return setTimeout(() => this.play());
+			setTimeout(() => this.play());
+			return;
 		}
 
 		if (!this._element) return;

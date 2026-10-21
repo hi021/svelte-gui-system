@@ -3,10 +3,10 @@ import { readonly, writable, type Readable } from 'svelte/store';
 import { EventService } from '../Event/EventService';
 import { PredicateMode } from '../Util/PredicateMode';
 import { Vec2 } from '../Util/Vec2';
+import type { AnchorVec } from './AnchorVec';
 import { WindowButton } from './Button/WindowButton.svelte';
 import { DisplayWindow, type WindowEditMode } from './DisplayWindow.svelte';
 import { WindowLayout } from './WindowLayout.svelte';
-import type { AnchorVec } from './AnchorVec';
 
 type ManagedWindow = DisplayWindow<any>;
 
@@ -86,6 +86,7 @@ export class WindowService {
 	private get topZIndex() {
 		return this.#windowsByZIndex.size ? Math.max(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
 	}
+	// @ts-expect-error unused atm
 	private get bottomZIndex() {
 		return this.#windowsByZIndex.size ? Math.min(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
 	}
@@ -122,6 +123,7 @@ export class WindowService {
 		for (const [_, dWindow] of this.#windows) {
 			if (dWindow.title === title) return dWindow;
 		}
+		return;
 	}
 
 	public debugAllObjects() {
@@ -130,7 +132,7 @@ export class WindowService {
 		console.log(debugString);
 	}
 
-	public handleClose(e: Event, dWindow: ManagedWindow) {
+	public handleClose(_: Event, dWindow: ManagedWindow) {
 		return this.closeWindow(dWindow);
 	}
 
@@ -150,11 +152,11 @@ export class WindowService {
 		return true;
 	}
 
-	public handleMinimize(e: Event, dWindow: ManagedWindow) {
+	public handleMinimize(_: Event, dWindow: ManagedWindow) {
 		this.toggleMinimizeWindow(dWindow);
 	}
 
-	public handleMaximize(e: Event, dWindow: ManagedWindow) {
+	public handleMaximize(_: Event, dWindow: ManagedWindow) {
 		this.toggleMaximizeWindow(dWindow);
 	}
 
@@ -177,7 +179,7 @@ export class WindowService {
 		this.#editingWindow = { dWindow, mode, offset };
 	}
 
-	public handleDragEnd(e: MouseEvent) {
+	public handleDragEnd(_: MouseEvent) {
 		if (!this.#editingWindow?.dWindow) return;
 
 		this.applyPendingDragUpdate();
@@ -228,10 +230,10 @@ export class WindowService {
 		}
 	}
 
-	public handleFocus(e: FocusEvent, dWindow: ManagedWindow) {
+	public handleFocus(_: FocusEvent, dWindow: ManagedWindow) {
 		this.focusWindow(dWindow);
 	}
-	public handleBlur(e: FocusEvent, dWindow: ManagedWindow) {
+	public handleBlur(_: FocusEvent, __: ManagedWindow) {
 		this.unfocusWindow();
 	}
 

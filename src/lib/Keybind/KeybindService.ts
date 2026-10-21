@@ -16,7 +16,8 @@ export class KeybindService {
 			{ action: KeyAction.WINDOW_OK, modifiers: 0, key: 'enter' },
 			{ action: KeyAction.WINDOW_RESIZE_MOD, modifiers: KeybindService.getCtrlMod() }
 		];
-		// TODO: load existing keymap from settings to override any default keybinds
+		// TODO!: load existing keymap to override any default keybinds
+		// TODO!: edit single bindings to allow rebind menus
 
 		KeybindService.buildModifiersToKeybindsMap();
 		KeybindService.buildActionsToKeybindsMap();
@@ -50,28 +51,22 @@ export class KeybindService {
 		// TODO
 	}
 
-	private static getAltMod() {
-		return KeybindService.getModifiersBitfield({ altKey: true, ctrlKey: false, shiftKey: false } as KeyModifiers);
-	}
 	private static getCtrlMod() {
-		return KeybindService.getModifiersBitfield({ altKey: false, ctrlKey: true, shiftKey: false } as KeyModifiers);
-	}
-	private static getShiftMod() {
-		return KeybindService.getModifiersBitfield({ altKey: false, ctrlKey: false, shiftKey: true } as KeyModifiers);
+		return KeybindService.buildModifiersBitfield({ altKey: false, ctrlKey: true, shiftKey: false } as KeyModifiers);
 	}
 	private static getEventModifiers(e: KeyboardEvent) {
 		const altKey = e.altKey || e.key === 'Alt';
 		const ctrlKey = e.ctrlKey || e.key === 'Control';
 		const shiftKey = e.shiftKey || e.key === 'Shift';
 		const modifiers: KeyModifiers = { altKey, ctrlKey, shiftKey };
-		return KeybindService.getModifiersBitfield(modifiers);
+		return KeybindService.buildModifiersBitfield(modifiers);
 	}
 	private static getEventKey(e: KeyboardEvent) {
 		return e.key === 'Shift' || e.key === 'Control' || e.key === 'Alt' || e.key === 'Unidentified' ?
 				undefined
 			:	e.key.toLocaleLowerCase();
 	}
-	private static getModifiersBitfield(modifiers?: KeyModifiers) {
+	private static buildModifiersBitfield(modifiers?: KeyModifiers) {
 		if (!modifiers) return 0;
 		return (+modifiers.altKey << 0) | (+modifiers.ctrlKey << 1) | (+modifiers.shiftKey << 2);
 	}

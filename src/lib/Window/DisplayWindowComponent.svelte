@@ -18,9 +18,9 @@
 		onresizestart
 	}: {
 		dWindow: DisplayWindow<any>;
-		onclose: (e: Event) => boolean | void;
-		onminimize: (e: Event) => boolean | void;
-		onmaximize: (e: Event) => boolean | void;
+		onclose: () => void;
+		onminimize: (e: Event) => void;
+		onmaximize: (e: Event) => void;
 		onfocus: (e: FocusEvent) => void;
 		onblur: (e: FocusEvent) => void;
 		onmovestart: (e: MouseEvent) => void;
@@ -57,7 +57,7 @@
 		const keyAction = KeybindService.getEventKeyAction(e);
 		switch (keyAction) {
 			case KeyAction.WINDOW_CLOSE:
-				return onclose(e);
+				return onclose();
 			case KeyAction.WINDOW_MINIMIZE:
 				return onminimize(e);
 			case KeyAction.WINDOW_MAXIMIZE:
@@ -150,7 +150,7 @@
 							class="display-window-close-btn btn-icon"
 							onclick={(e) => {
 								e.stopPropagation();
-								onclose(e);
+								onclose();
 							}}
 							title="Close"><Icon tag="window-close" /></button>
 					{/if}

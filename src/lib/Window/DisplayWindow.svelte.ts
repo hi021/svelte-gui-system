@@ -29,7 +29,8 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	#id = $state(0);
 	#size = $state(new Vec2(600, 400));
 	#position = $state(new Vec2());
-	#dragBoundary = new Vec4(); // TODO
+	// @ts-expect-error TODO
+	#dragBoundary = new Vec4();
 	#editMode = $state<WindowEditMode>(null);
 	#minimized = $state(false);
 	#maximized = $state(false);

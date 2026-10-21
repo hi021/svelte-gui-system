@@ -8,7 +8,8 @@ export class AudioService {
 	readonly #audioObjectsByTag = new Map<string, Audio>();
 	readonly #audioObjects = new Map<number, Audio>();
 	#audioObjectsStore = writable<Audio[]>([]);
-	#playingAudioObjects = new Array<Audio>(); // TODO EVENTS
+	//@ts-expect-error TODO EVENTS
+	#playingAudioObjects = new Array<Audio>();
 	#audioIdSequence = 1;
 
 	public get audioObjects() {
@@ -124,9 +125,8 @@ export class AudioService {
 		audio[action]();
 	}
 
-	private actionOnAllAudioObjects() {
-		// TODO
-	}
+	//@ts-expect-error TODO
+	private actionOnAllAudioObjects() {}
 
 	public debugAllObjects() {
 		let debugString = '';

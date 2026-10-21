@@ -17,13 +17,14 @@ export class ButtonHelper {
 		switch (buttonConfiguration) {
 			case ButtonConfiguration.OK:
 				buttons[0] = ButtonHelper.buildOkButton();
+				break;
 			case ButtonConfiguration.YES_NO:
 				buttons[0] = ButtonHelper.buildYesButton();
 				buttons[1] = ButtonHelper.buildNoButton();
 		}
 
 		if (actions?.length) {
-			for (let i = 0; i < buttons.length; ++i) if (actions[i]) buttons[i].action = actions[i];
+			for (let i = 0; i < buttons.length; ++i) if (actions[i]) buttons[i]!.action = actions[i];
 		}
 
 		return buttons;
@@ -47,7 +48,7 @@ export class ButtonHelper {
 		return ButtonHelper.buildSimpleButton({ text: 'No', buttonClass: 'BTN_NO' });
 	}
 
-	public static getWindowCloseAction() {
-		return (e: MouseEvent, dWindow: DisplayWindow) => EventService.dispatchEvent(new WindowCloseEvent(dWindow));
+	public static getWindowCloseAction(): WindowButtonAction {
+		return (_: MouseEvent, dWindow: DisplayWindow) => EventService.dispatchEvent(new WindowCloseEvent(dWindow));
 	}
 }
