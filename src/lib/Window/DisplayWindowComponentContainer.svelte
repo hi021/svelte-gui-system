@@ -3,7 +3,7 @@
 	import { EventService } from '../Event/EventService';
 	import { WindowCloseEvent } from '../Event/WindowCloseEvent';
 	import DisplayWindowComponent from './DisplayWindowComponent.svelte';
-	import type { WindowService } from './WindowService';
+	import type { WindowService } from './WindowService.svelte';
 
 	const { windowManager }: { windowManager: WindowService } = $props();
 

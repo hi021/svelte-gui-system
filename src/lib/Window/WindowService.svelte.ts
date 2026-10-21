@@ -53,6 +53,7 @@ export class WindowService {
 	readonly #windowsReadable: Readable<readonly ManagedWindow[]> = readonly(this.#windowsStore);
 	readonly #windowsOnTop = new Set<number>();
 	readonly #windowsByZIndex = new Map<number, number>();
+	#container: HTMLElement | undefined;
 	#focusedWindow: ManagedWindow | null = null;
 	#editingWindow: EditingWindow | null = null;
 	#pendingDragEvent: MouseEvent | null = null;
@@ -61,11 +62,13 @@ export class WindowService {
 	readonly #unsubscribeClose: () => void;
 	#disposed = false;
 
-	public constructor() {
+	public constructor(container?: HTMLElement) {
 		this.#unsubscribeClose = EventService.windowCloseEvent.subscribe(
 			(event) =>
 				event && [...this.#windows.values()].includes(event.sourceWindow) && this.closeWindow(event.sourceWindow)
 		);
+
+		if (container) this.initialize(container);
 	}
 
 	public static windowExists(dWindow?: ManagedWindow) {
@@ -89,6 +92,23 @@ export class WindowService {
 	// @ts-expect-error unused atm
 	private get bottomZIndex() {
 		return this.#windowsByZIndex.size ? Math.min(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
+	}
+
+	public get containerSize() {
+		if (!this.isInitialized) throw new Error('Cannot perform this action on an unitialized WindowService');
+
+		const { width, height } = this.#container!.getBoundingClientRect();
+		return new Vec2(width, height);
+	}
+
+	// TODO: disallow registering windows until initialized
+	public get isInitialized() {
+		return this.#container !== undefined;
+	}
+
+	public initialize(container: HTMLElement) {
+		if (!container) throw new Error('Cannot initialize WindowService without a container HTML element');
+		this.#container = container;
 	}
 
 	public getWindowById(id: number) {
@@ -214,10 +234,10 @@ export class WindowService {
 		const dWindow = editingWindow.dWindow;
 
 		if (editingWindow.mode === 'moving') {
-			// TODO: revisit after changing to translate3d
-			// TODO: handle anchors after split to anchor X & Y
 			dWindow.setPosition(e.clientX + editingWindow.offset.x, e.clientY + editingWindow.offset.y);
 		} else {
+			// TODO: handle anchors after split to anchor X & Y
+			dWindow.getPointWindowQuadrant(new Vec2(e.clientX, e.clientY));
 			dWindow.setSize(e.clientX + editingWindow.offset.x, e.clientY + editingWindow.offset.y);
 		}
 	}
@@ -337,6 +357,8 @@ export class WindowService {
 		this.cancelPendingDragUpdate();
 		if (this.#editingWindow) this.#editingWindow.dWindow.setEditMode(null);
 		this.#editingWindow = null;
+
+		//TODO?: close & remove all windows
 	}
 
 	private setFocusedWindowZIndex(dWindow: ManagedWindow) {

@@ -8,7 +8,7 @@ import { AnchorPointY } from './AnchorPointY';
 import { AnchorVec } from './AnchorVec';
 import { WindowButton } from './Button/WindowButton.svelte';
 import { WindowLayout } from './WindowLayout.svelte';
-import { WindowService } from './WindowService';
+import { WindowService } from './WindowService.svelte';
 
 export type WindowEditMode = 'moving' | 'resizing' | null;
 
@@ -26,6 +26,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public customWindowContainerCss = $state('');
 	public customContentContainerCss = $state('');
 	public props = $state<P | undefined>();
+	private _element: HTMLDivElement | undefined = $state(undefined); // Not to be used outside the svelte component!
 	#id = $state(0);
 	#size = $state(new Vec2(600, 400));
 	#position = $state(new Vec2());
@@ -62,6 +63,11 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		}
 
 		this.#id = id;
+	}
+
+	// Only use in case of emergency!
+	public get element() {
+		return this._element;
 	}
 
 	public get minimized() {
@@ -184,6 +190,61 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		if (!Util.isEnumValue(AnchorPointX, x) || !Util.isEnumValue(AnchorPointY, y))
 			throw new TypeError('Invalid window property value provided - anchors must be valid AnchorPoint enums');
 		this.#anchor = new AnchorVec(x, y);
+	}
+
+	//@ts-expect-error TODO in the window service
+	public getPointWindowQuadrant(point: Vec2) {
+		const bounds = this.relativeBounds;
+
+		console.log(bounds);
+	}
+
+	public get relativeBounds() {
+		return { x: this.relativeHorizontalBounds, y: this.relativeVerticalBounds };
+	}
+	private get relativeHorizontalBounds() {
+		switch (this.#anchor.x) {
+			case AnchorPointX.LEFT:
+				return {
+					start: this.#position.x,
+					mid: this.#position.x + this.#size.x / 2,
+					end: this.#position.x + this.#size.x
+				};
+			case AnchorPointX.CENTER:
+				return {
+					start: this.#position.x - this.#size.x / 2,
+					mid: this.#position.x,
+					end: this.#position.x + this.#size.x / 2
+				};
+			case AnchorPointX.RIGHT:
+				return {
+					start: this.#position.x - this.#size.x,
+					mid: this.#position.x - this.#size.x / 2,
+					end: this.#position.x
+				};
+		}
+	}
+	private get relativeVerticalBounds() {
+		switch (this.#anchor.y) {
+			case AnchorPointY.TOP:
+				return {
+					start: this.#position.y,
+					mid: this.#position.y + this.#size.y / 2,
+					end: this.#position.y + this.#size.y
+				};
+			case AnchorPointY.CENTER:
+				return {
+					start: this.#position.y - this.#size.y / 2,
+					mid: this.#position.y,
+					end: this.#position.y + this.#size.y / 2
+				};
+			case AnchorPointY.BOTTOM:
+				return {
+					start: this.#position.y - this.#size.y,
+					mid: this.#position.y - this.#size.y / 2,
+					end: this.#position.y
+				};
+		}
 	}
 
 	public get zIndex() {

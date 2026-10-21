@@ -44,5 +44,5 @@ export { default as DisplayWindowComponentContainer } from './Window/DisplayWind
 export { NotificationWindow } from './Window/Templates/NotificationWindow';
 export { WindowLayout } from './Window/WindowLayout.svelte';
 export type { WindowLayoutOptions } from './Window/WindowLayout.svelte';
-export { WindowService } from './Window/WindowService';
-export type { CreateWindowParams } from './Window/WindowService';
+export { WindowService } from './Window/WindowService.svelte';
+export type { CreateWindowParams } from './Window/WindowService.svelte';

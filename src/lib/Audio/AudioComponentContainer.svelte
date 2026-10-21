@@ -13,20 +13,20 @@
 		audioObjectsUnsubscriber();
 	});
 
-	function onended(e: Event, audio: AudioObject) {
+	function onended(_: Event, audio: AudioObject) {
 		// @ts-expect-error allow svelte components to modify state
 		audio._state = MediaState.ENDED;
 	}
-	function onpause(e: Event, audio: AudioObject) {
+	function onpause(_: Event, audio: AudioObject) {
 		// @ts-expect-error allow svelte components to modify state
 		audio._state = MediaState.PAUSED;
 	}
-	function onplay(e: Event, audio: AudioObject) {
+	function onplay(_: Event, audio: AudioObject) {
 		// @ts-expect-error allow svelte components to modify state
 		audio._state = MediaState.PLAYING;
 	}
 </script>
 
-{#each audioObjects as audioObject}
+{#each audioObjects as audioObject (audioObject.id)}
 	<AudioComponent audio={audioObject} {onplay} {onpause} {onended} />
 {/each}

@@ -26,7 +26,6 @@
 		onmovestart: (e: MouseEvent) => void;
 		onresizestart: (e: MouseEvent) => void;
 	} = $props();
-	let dWindowElement: HTMLDivElement;
 	let editMode = $derived(dWindow.editMode);
 	let pendingMove = false;
 
@@ -80,13 +79,15 @@
 	};
 
 	onMount(() => {
-		dWindowElement.addEventListener('keyup', handleKeyUp);
-		dWindowElement.addEventListener('keydown', handleKeyDown);
-		dWindowElement.addEventListener('mousedown', handleMousedown);
+		if (!dWindow.element) return console.error(`Window initialization error! No DOM element bound`, dWindow.toString());
+
+		dWindow.element.addEventListener('keyup', handleKeyUp);
+		dWindow.element.addEventListener('keydown', handleKeyDown);
+		dWindow.element.addEventListener('mousedown', handleMousedown);
 		return () => {
-			dWindowElement.removeEventListener('keyup', handleKeyUp);
-			dWindowElement.removeEventListener('keydown', handleKeyDown);
-			dWindowElement.removeEventListener('mousedown', handleMousedown);
+			dWindow.element!.removeEventListener('keyup', handleKeyUp);
+			dWindow.element!.removeEventListener('keydown', handleKeyDown);
+			dWindow.element!.removeEventListener('mousedown', handleMousedown);
 			cancelPendingMove();
 		};
 	});
@@ -107,7 +108,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	transition:scale={{ duration: 150 }}
-	bind:this={dWindowElement}
+	bind:this={dWindow._element}
 	class="display-window-container unselectable"
 	data-window-class={dWindow.objectClass}
 	data-edit-mode={editMode}
