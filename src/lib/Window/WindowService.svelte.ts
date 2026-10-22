@@ -2,7 +2,10 @@ import type { Snippet } from 'svelte';
 import { readonly, writable, type Readable } from 'svelte/store';
 import { EventService } from '../Event/EventService';
 import { PredicateMode } from '../Util/PredicateMode';
+import { Quadrant } from '../Util/Quadrant';
 import { Vec2 } from '../Util/Vec2';
+import { AnchorPointX } from './AnchorPointX';
+import { AnchorPointY } from './AnchorPointY';
 import type { AnchorVec } from './AnchorVec';
 import { WindowButton } from './Button/WindowButton.svelte';
 import { DisplayWindow, type WindowEditMode } from './DisplayWindow.svelte';
@@ -95,13 +98,19 @@ export class WindowService {
 	}
 
 	public get containerSize() {
-		if (!this.isInitialized) throw new Error('Cannot perform this action on an unitialized WindowService');
+		if (!this.isInitialized) throw new Error('Cannot perform this action on an uninitialized WindowService');
 
 		const { width, height } = this.#container!.getBoundingClientRect();
 		return new Vec2(width, height);
 	}
+	public get containerPosition() {
+		if (!this.isInitialized) throw new Error('Cannot perform this action on an uninitialized WindowService');
 
-	// TODO: disallow registering windows until initialized
+		const { x, y } = this.#container!.getBoundingClientRect();
+		return new Vec2(x, y);
+	}
+
+	// TODO?: disallow registering windows until initialized
 	public get isInitialized() {
 		return this.#container !== undefined;
 	}
@@ -109,6 +118,56 @@ export class WindowService {
 	public initialize(container: HTMLElement) {
 		if (!container) throw new Error('Cannot initialize WindowService without a container HTML element');
 		this.#container = container;
+	}
+
+	public getWindowAnchorPosition(dWindow: ManagedWindow) {
+		if (!this.isInitialized) throw new Error('Cannot perform this action on an uninitialized WindowService');
+
+		const containerRect = this.#container!.getBoundingClientRect();
+		let x = 0;
+		if (dWindow.anchor.x === AnchorPointX.CENTER) x = containerRect.width / 2;
+		else if (dWindow.anchor.x === AnchorPointX.RIGHT) x = containerRect.width;
+
+		let y = 0;
+		if (dWindow.anchor.y === AnchorPointY.CENTER) y = containerRect.height / 2;
+		else if (dWindow.anchor.y === AnchorPointY.BOTTOM) y = containerRect.height;
+
+		return new Vec2(x, y);
+	}
+
+	public getWindowTopLeftPosition(dWindow: ManagedWindow) {
+		if (!this.isInitialized) throw new Error('Cannot perform this action on an uninitialized WindowService');
+
+		const anchorPosition = this.getWindowAnchorPosition(dWindow);
+		const windowRelativePosition = dWindow.relativePosition;
+		return new Vec2(anchorPosition.x + windowRelativePosition.x.left, anchorPosition.y + windowRelativePosition.y.top);
+	}
+
+	public translatePointToContainerCoordinates(pagePoint: Vec2) {
+		if (!this.isInitialized) throw new Error('Cannot perform this action on an uninitialized WindowService');
+
+		const containerRect = this.#container!.getBoundingClientRect();
+		return new Vec2(pagePoint.x - containerRect.x, pagePoint.y - containerRect.y);
+	}
+
+	public translatePointToWindowCoordinates(dWindow: ManagedWindow, viewportPoint: Vec2) {
+		if (!this.isInitialized) throw new Error('Cannot perform this action on an uninitialized WindowService');
+
+		const containerCoordinates = this.translatePointToContainerCoordinates(viewportPoint);
+		const windowPos = this.getWindowTopLeftPosition(dWindow);
+		return new Vec2(containerCoordinates.x - windowPos.x, containerCoordinates.y - windowPos.y);
+	}
+
+	public getPointWindowQuadrant(dWindow: ManagedWindow, viewportPoint: Vec2) {
+		if (!this.isInitialized) throw new Error('Cannot perform this action on an uninitialized WindowService');
+
+		const windowPoint = this.translatePointToWindowCoordinates(dWindow, viewportPoint);
+		const windowSize = dWindow.size;
+		const halfW = windowSize.x / 2;
+		const halfH = windowSize.y / 2;
+
+		if (windowPoint.x >= halfW) return windowPoint.y >= halfH ? Quadrant.BOTTOM_RIGHT : Quadrant.TOP_RIGHT;
+		return windowPoint.y >= halfH ? Quadrant.BOTTOM_LEFT : Quadrant.TOP_LEFT;
 	}
 
 	public getWindowById(id: number) {
@@ -190,13 +249,21 @@ export class WindowService {
 
 	public handleDragStart(e: MouseEvent, dWindow: ManagedWindow, mode: WindowEditMode) {
 		// TODO: handle anchors after split to anchor X & Y
-		// TODO handle Center anchor
+		if (mode === 'moving')
+			return (this.#editingWindow = {
+				dWindow,
+				mode,
+				offset: new Vec2(dWindow.position.x - e.clientX, dWindow.position.y - e.clientY)
+			});
 
-		const offset =
-			mode === 'moving' ?
-				new Vec2(dWindow.position.x - e.clientX, dWindow.position.y - e.clientY)
-			:	new Vec2(dWindow.size.x - e.clientX, dWindow.size.y - e.clientY);
-		this.#editingWindow = { dWindow, mode, offset };
+			// TODO!: resize anchors based on quadrant
+		const quadrant = this.getPointWindowQuadrant(dWindow, new Vec2(e.clientX, e.clientY));
+		dWindow.element!.ownerDocument.body.setAttribute('data-resize-direction', quadrant);
+		return (this.#editingWindow = {
+			dWindow,
+			mode,
+			offset: new Vec2(dWindow.size.x - e.clientX, dWindow.size.y - e.clientY)
+		});
 	}
 
 	public handleDragEnd(_: MouseEvent) {
@@ -204,6 +271,7 @@ export class WindowService {
 
 		this.applyPendingDragUpdate();
 		this.#editingWindow.dWindow.setEditMode(null);
+		this.#editingWindow.dWindow.element!.ownerDocument.body.removeAttribute('data-resize-direction');
 		this.#editingWindow = null;
 	}
 
@@ -237,12 +305,12 @@ export class WindowService {
 			dWindow.setPosition(e.clientX + editingWindow.offset.x, e.clientY + editingWindow.offset.y);
 		} else {
 			// TODO: handle anchors after split to anchor X & Y
-			dWindow.getPointWindowQuadrant(new Vec2(e.clientX, e.clientY));
 			dWindow.setSize(e.clientX + editingWindow.offset.x, e.clientY + editingWindow.offset.y);
 		}
 	}
 
 	private cancelPendingDragUpdate() {
+		console.debug('cancelPendingDragUpdate');
 		this.#pendingDragEvent = null;
 		if (this.#dragAnimationFrame !== null) {
 			cancelAnimationFrame(this.#dragAnimationFrame);

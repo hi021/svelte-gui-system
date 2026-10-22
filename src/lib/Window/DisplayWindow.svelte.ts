@@ -192,57 +192,50 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		this.#anchor = new AnchorVec(x, y);
 	}
 
-	//@ts-expect-error TODO in the window service
-	public getPointWindowQuadrant(point: Vec2) {
-		const bounds = this.relativeBounds;
-
-		console.log(bounds);
+	public get relativePosition() {
+		return { x: this.horizontalPositionToAnchor, y: this.verticalPositionToAnchor };
 	}
-
-	public get relativeBounds() {
-		return { x: this.relativeHorizontalBounds, y: this.relativeVerticalBounds };
-	}
-	private get relativeHorizontalBounds() {
+	private get horizontalPositionToAnchor() {
 		switch (this.#anchor.x) {
 			case AnchorPointX.LEFT:
 				return {
-					start: this.#position.x,
-					mid: this.#position.x + this.#size.x / 2,
-					end: this.#position.x + this.#size.x
+					left: this.#position.x,
+					center: this.#position.x + this.#size.x / 2,
+					right: this.#position.x + this.#size.x
 				};
 			case AnchorPointX.CENTER:
 				return {
-					start: this.#position.x - this.#size.x / 2,
-					mid: this.#position.x,
-					end: this.#position.x + this.#size.x / 2
+					left: this.#position.x - this.#size.x / 2,
+					center: this.#position.x,
+					right: this.#position.x + this.#size.x / 2
 				};
 			case AnchorPointX.RIGHT:
 				return {
-					start: this.#position.x - this.#size.x,
-					mid: this.#position.x - this.#size.x / 2,
-					end: this.#position.x
+					left: this.#position.x - this.#size.x,
+					center: this.#position.x - this.#size.x / 2,
+					right: this.#position.x
 				};
 		}
 	}
-	private get relativeVerticalBounds() {
+	private get verticalPositionToAnchor() {
 		switch (this.#anchor.y) {
 			case AnchorPointY.TOP:
 				return {
-					start: this.#position.y,
-					mid: this.#position.y + this.#size.y / 2,
-					end: this.#position.y + this.#size.y
+					top: this.#position.y,
+					center: this.#position.y + this.#size.y / 2,
+					bottom: this.#position.y + this.#size.y
 				};
 			case AnchorPointY.CENTER:
 				return {
-					start: this.#position.y - this.#size.y / 2,
-					mid: this.#position.y,
-					end: this.#position.y + this.#size.y / 2
+					top: this.#position.y - this.#size.y / 2,
+					center: this.#position.y,
+					bottom: this.#position.y + this.#size.y / 2
 				};
 			case AnchorPointY.BOTTOM:
 				return {
-					start: this.#position.y - this.#size.y,
-					mid: this.#position.y - this.#size.y / 2,
-					end: this.#position.y
+					top: this.#position.y - this.#size.y,
+					center: this.#position.y - this.#size.y / 2,
+					bottom: this.#position.y
 				};
 		}
 	}
