@@ -256,7 +256,7 @@ export class WindowService {
 				offset: new Vec2(dWindow.position.x - e.clientX, dWindow.position.y - e.clientY)
 			});
 
-			// TODO!: resize anchors based on quadrant
+		// TODO!: resize anchors based on quadrant
 		const quadrant = this.getPointWindowQuadrant(dWindow, new Vec2(e.clientX, e.clientY));
 		dWindow.element!.ownerDocument.body.setAttribute('data-resize-direction', quadrant);
 		return (this.#editingWindow = {
@@ -306,6 +306,29 @@ export class WindowService {
 		} else {
 			// TODO: handle anchors after split to anchor X & Y
 			dWindow.setSize(e.clientX + editingWindow.offset.x, e.clientY + editingWindow.offset.y);
+		}
+		this.constrainTitleBarToContainer(dWindow);
+	}
+
+	// this does not constrain resizeable windows without titlebars!
+	// TODO!: minimizing may put bottom anchor windows below container
+	private constrainTitleBarToContainer(dWindow: ManagedWindow) {
+		const titleBar = dWindow.element?.querySelector<HTMLElement>('.display-window-titlebar');
+		if (!titleBar) return;
+
+		const containerSize = this.containerSize;
+		if (dWindow.size.x > containerSize.x && dWindow.minSize.x <= containerSize.x)
+			dWindow.setSize(containerSize.x, dWindow.size.y);
+
+		const titleBarHeight = titleBar.getBoundingClientRect().height;
+		const topLeft = this.getWindowTopLeftPosition(dWindow);
+		if (dWindow.anchor.y === AnchorPointY.BOTTOM) topLeft.y -= titleBarHeight;
+
+		const left = Math.min(Math.max(topLeft.x, 0), Math.max(0, containerSize.x - dWindow.size.x));
+		const top = Math.min(Math.max(topLeft.y, 0), Math.max(0, containerSize.y - titleBarHeight));
+		if (left !== topLeft.x || top !== topLeft.y) {
+			const position = dWindow.position;
+			dWindow.setPosition(position.x + left - topLeft.x, position.y + top - topLeft.y);
 		}
 	}
 

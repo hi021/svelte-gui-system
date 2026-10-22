@@ -2,7 +2,6 @@ import type { Snippet } from 'svelte';
 import { PredicateMode } from '../Util/PredicateMode';
 import Util from '../Util/Util';
 import { Vec2 } from '../Util/Vec2';
-import { Vec4 } from '../Util/Vec4';
 import { AnchorPointX } from './AnchorPointX';
 import { AnchorPointY } from './AnchorPointY';
 import { AnchorVec } from './AnchorVec';
@@ -30,8 +29,6 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	#id = $state(0);
 	#size = $state(new Vec2(600, 400));
 	#position = $state(new Vec2());
-	// @ts-expect-error TODO
-	#dragBoundary = new Vec4();
 	#editMode = $state<WindowEditMode>(null);
 	#minimized = $state(false);
 	#maximized = $state(false);
