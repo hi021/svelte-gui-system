@@ -3,6 +3,7 @@ import { WindowCloseEvent } from '../../Event/WindowCloseEvent';
 import type { DisplayWindow } from '../DisplayWindow.svelte';
 import { ButtonConfiguration } from './ButtonConfiguration';
 import { WindowButton, type WindowButtonAction } from './WindowButton.svelte';
+import { WindowButtonBuilder } from './WindowButtonBuilder';
 
 export type MinimalWindowArguments = {
 	text?: string;
@@ -31,12 +32,12 @@ export class ButtonHelper {
 	}
 
 	public static buildSimpleButton(args: MinimalWindowArguments) {
-		const button = new WindowButton();
-		button.text = args.text;
-		button.action = args.action;
-		button.icon = args.icon;
-		if (args.buttonClass != null) button.buttonClass = args.buttonClass;
-		return button;
+		return new WindowButtonBuilder()
+			.withText(args.text)
+			.withAction(args.action)
+			.withIcon(args.icon)
+			.withButtonClass(args.buttonClass ?? 'NONE')
+			.build();
 	}
 	public static buildOkButton() {
 		return ButtonHelper.buildSimpleButton({ text: 'OK', buttonClass: 'BTN_OK', action: this.getWindowCloseAction() });

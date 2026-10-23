@@ -9,7 +9,8 @@ import { AnchorPointY } from './AnchorPointY';
 import type { AnchorVec } from './AnchorVec';
 import { WindowButton } from './Button/WindowButton.svelte';
 import { DisplayWindow, type WindowEditMode } from './DisplayWindow.svelte';
-import { WindowLayout } from './WindowLayout.svelte';
+import type { WindowLayout } from './WindowLayout.svelte';
+import { WindowLayoutBuilder } from './WindowLayoutBuilder';
 
 type ManagedWindow = DisplayWindow<any>;
 
@@ -418,11 +419,11 @@ export class WindowService {
 	}
 
 	private generateDefaultWindowLayout(dWindow: ManagedWindow) {
-		return new WindowLayout({
-			maximizeButton: dWindow.maximizable,
-			minimizeButton: dWindow.minimizable,
-			title: !!dWindow.title
-		});
+		return new WindowLayoutBuilder()
+			.withMaximizeButton(dWindow.maximizable)
+			.withMinimizeButton(dWindow.minimizable)
+			.withTitle(!!dWindow.title)
+			.build();
 	}
 
 	private setWindowsMap(dWindow: ManagedWindow) {

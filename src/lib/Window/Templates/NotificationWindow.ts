@@ -4,7 +4,7 @@ import { ButtonLayout } from '../Button/ButtonLayout';
 import type { WindowButtonAction } from '../Button/WindowButton.svelte';
 import { content } from '../Contents/Templates/NotificationTemplate.svelte';
 import { DisplayWindow } from '../DisplayWindow.svelte';
-import { WindowLayout } from '../WindowLayout.svelte';
+import { WindowLayoutBuilder } from '../WindowLayoutBuilder';
 
 export class NotificationWindow extends DisplayWindow<{ text: string }> {
 	public constructor(
@@ -19,11 +19,11 @@ export class NotificationWindow extends DisplayWindow<{ text: string }> {
 		this.maximizable = false;
 		this.minimizable = false;
 		this.objectClass = 'NOTIFICATION';
-		this.layout = new WindowLayout({
-			maximizeButton: false,
-			minimizeButton: false,
-			buttonLayout: ButtonLayout.CENTERED
-		});
+		this.layout = new WindowLayoutBuilder()
+			.withMaximizeButton(false)
+			.withMinimizeButton(false)
+			.withButtonLayout(ButtonLayout.CENTERED)
+			.build();
 		this.props = { text };
 		if (title) this.title = title;
 
