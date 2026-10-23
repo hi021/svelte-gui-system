@@ -5,6 +5,8 @@ export type NonMethodsOnly<T> = {
 export type FieldsOnly<T> = Pick<T, NonMethodsOnly<T>>;
 
 export default class Util {
+	private constructor() {}
+
 	public static isEnumValue<T extends Object>(enumObj: T, value: unknown): value is T[keyof T] {
 		return Object.values(enumObj).includes(value as T[keyof T]);
 	}

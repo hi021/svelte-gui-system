@@ -8,7 +8,7 @@ export { AudioService } from './Audio/AudioService';
 export { MediaState } from './Audio/MediaState';
 export { AbstractBuilder } from './Builder/AbstractBuilder';
 export { Color } from './Color/Color';
-export { ColorEnum } from './Color/ColorEnum';
+export { ColorService } from './Color/ColorService';
 export { AudioEvent } from './Event/AudioEvent';
 export { AudioPlayEvent } from './Event/AudioPlayEvent';
 export { AudioStopEvent } from './Event/AudioStopEvent';
@@ -49,4 +49,3 @@ export type { WindowLayoutOptions } from './Window/WindowLayout.svelte';
 export { WindowLayoutBuilder } from './Window/WindowLayoutBuilder';
 export { WindowService } from './Window/WindowService.svelte';
 export type { CreateWindowParams } from './Window/WindowService.svelte';
-
