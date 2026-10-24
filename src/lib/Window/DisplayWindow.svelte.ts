@@ -15,6 +15,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	// TODO: unique tag so the same window cannot be opened twice
 	// TODO: make default initial size fit to content
 	// TODO: store initial size and position (not $state)
+	// TODO: title bar & buttons styling
 	public objectClass = 'NONE';
 	public title = $state('');
 	public layout = $state(new WindowLayout());
