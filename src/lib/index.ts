@@ -39,6 +39,7 @@ export type { WindowButtonAction, WindowButtonOptions } from './Window/Button/Wi
 export { WindowButtonBuilder } from './Window/Button/WindowButtonBuilder';
 export { default as WindowButtonComponent } from './Window/Button/WindowButtonComponent.svelte';
 export { content as NotificationTemplate } from './Window/Contents/Templates/NotificationTemplate.svelte';
+export { content as BlankTemplate } from './Window/Contents/Templates/BlankTemplate.svelte';
 export { DisplayWindow } from './Window/DisplayWindow.svelte';
 export type { WindowEditMode } from './Window/DisplayWindow.svelte';
 export { default as DisplayWindowComponent } from './Window/DisplayWindowComponent.svelte';

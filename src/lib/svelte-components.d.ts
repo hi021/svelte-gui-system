@@ -3,7 +3,7 @@ declare module '*.svelte' {
 
 	const component: Component<Record<string, unknown>>;
 	export default component;
-	export const content: Snippet<[props?: { text: string }]>;
+	export const content: Snippet<[props?: Record<string, unknown>]>;
 }
 
 declare module '*.css';

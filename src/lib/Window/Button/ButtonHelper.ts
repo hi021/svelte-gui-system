@@ -13,6 +13,8 @@ export type MinimalWindowArguments = {
 };
 
 export class ButtonHelper {
+	private constructor() {}
+
 	public static buttonsFromConfiguration(buttonConfiguration: ButtonConfiguration, actions?: WindowButtonAction[]) {
 		const buttons = new Array<WindowButton>();
 		switch (buttonConfiguration) {
