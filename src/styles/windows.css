@@ -7,7 +7,7 @@
 }
 
 .display-window-container:focus {
-	outline: 2px solid var(--color-secondary);
+	outline: 2px solid var(--color-darker);
 }
 .display-window-container {
 	position: absolute;
@@ -46,7 +46,7 @@ body[data-resize-direction='se'] {
 	justify-content: space-between;
 	gap: 10px;
 	padding: 6px;
-	background: linear-gradient(166deg, var(--color-info), color-mix(in srgb, var(--color-info) 10%, transparent));
+	background: linear-gradient(166deg, var(--color-dark), color-mix(in srgb, var(--color-dark) 10%, transparent));
 }
 .display-window-title {
 	line-height: 1;
@@ -68,7 +68,7 @@ body[data-resize-direction='se'] {
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
-	background-color: var(--color-darkish);
+	background-color: var(--color-light);
 	padding: var(--padding);
 	overflow: auto;
 }
@@ -89,8 +89,8 @@ body[data-resize-direction='se'] {
 
 .display-window-titlebar-btn-container > button {
 	cursor: default;
-	background-color: color-mix(in srgb, var(--color-darkish) 75%, transparent);
+	background-color: color-mix(in srgb, var(--color-light) 75%, transparent);
 }
 .display-window-titlebar-btn-container > button:hover {
-	background-color: var(--color-darkish);
+	background-color: var(--color-light);
 }
