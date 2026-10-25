@@ -137,6 +137,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		const element = this._element;
 		const contentWrapper = element?.querySelector<HTMLElement>('.display-window-content-wrapper');
 		const content = element?.querySelector<HTMLElement>('.display-window-content');
+		const titleBar = element?.querySelector<HTMLElement>('.display-window-titlebar');
 		if (!element || !contentWrapper || !content) return false;
 
 		const elementStyle = element.style.cssText;
@@ -158,7 +159,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 			if (width < this.#minSize.x) width = this.#minSize.x;
 
 			element.style.setProperty('width', `${width}px`, 'important');
-			height = element.getBoundingClientRect().height;
+			height = element.getBoundingClientRect().height - (titleBar?.getBoundingClientRect()?.height ?? 0);
 		} finally {
 			element.style.cssText = elementStyle;
 			contentWrapper.style.cssText = wrapperStyle;
