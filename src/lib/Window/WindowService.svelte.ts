@@ -396,9 +396,9 @@ export class WindowService {
 		if (options.customWindowContainerCss) dWindow.customWindowContainerCss = options.customWindowContainerCss;
 		if (options.customContentContainerCss) dWindow.customContentContainerCss = options.customContentContainerCss;
 		if (options.props != null) dWindow.props = options.props;
-		if (options.size) dWindow.size = options.size;
 		if (options.minSize) dWindow.minSize = options.minSize;
 		if (options.maxSize) dWindow.maxSize = options.maxSize;
+		if (options.size) dWindow.size = options.size;
 		if (options.anchor) dWindow.anchor = options.anchor;
 		if (options.buttons) dWindow.buttons = options.buttons;
 		if (options.parent != null) dWindow.setParent(options.parent);
@@ -421,7 +421,9 @@ export class WindowService {
 		if (this.#windows.size >= WindowService.MAX_WINDOWS)
 			throw new Error(`Failed to register window: maximum number of windows is ${WindowService.MAX_WINDOWS}`);
 		if (dWindow.tag !== undefined && this.#windowsByTag.has(dWindow.tag))
-			throw new Error(`Failed to register window: tag "${dWindow.tag}" is already in use`);
+			throw new Error(
+				`Failed to register window: tag "${dWindow.tag}" is already in use - this is most probably intended behavior`
+			);
 
 		if (dWindow.focused) this.focusWindow(dWindow);
 		if (dWindow.alwaysOnTop) this.#windowsOnTop.add(dWindow.id);

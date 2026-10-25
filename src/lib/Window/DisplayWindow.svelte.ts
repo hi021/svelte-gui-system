@@ -1,4 +1,5 @@
 import type { Snippet } from 'svelte';
+import { fly, slide } from 'svelte/transition';
 import { PredicateMode } from '../Util/PredicateMode';
 import Util from '../Util/Util';
 import { Vec2 } from '../Util/Vec2';
@@ -10,11 +11,12 @@ import { WindowLayout } from './WindowLayout.svelte';
 import { WindowService } from './WindowService.svelte';
 
 export type WindowEditMode = 'moving' | 'resizing' | null;
+export type ContentWrapperTransition = (node: Element, params: { duration: number }) => ReturnType<typeof slide>;
 
 export class DisplayWindow<P extends object = Record<string, unknown>> {
-	// TODO: make default initial size fit to content
 	// TODO: store initial size and position (not $state)
-	// TODO: title bar & buttons styling
+	// TODO: focus window with existing tag on creation
+	// TODO?: title bar & buttons styling - can be done through css data- attribute pickers for now
 	public objectClass = 'NONE';
 	public readonly tag?: string;
 	public title = $state('');
@@ -32,6 +34,8 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	private _element: HTMLDivElement | undefined = $state(undefined); // Not to be used outside the svelte component!
 	#id = $state(0);
 	#size = $state(new Vec2(600, 400));
+	#hasExplicitSize = false;
+	#contentWrapperTransition: ContentWrapperTransition | undefined;
 	#position = $state(new Vec2());
 	#editMode = $state<WindowEditMode>(null);
 	#minimized = $state(false);
@@ -105,6 +109,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	}
 	public set size(size: Vec2) {
 		if (!(size instanceof Vec2)) throw new TypeError('Invalid window property value provided - size must be a Vec2');
+		this.#hasExplicitSize = true;
 
 		const ownedSize = new Vec2(size.x, size.y);
 		if (ownedSize.x < this.#minSize.x) ownedSize.x = this.#minSize.x;
@@ -113,6 +118,55 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		else if (this.#maxSize && ownedSize.y > this.#maxSize.y) ownedSize.y = this.#maxSize.y;
 
 		this.#size = ownedSize;
+	}
+
+	public get hasExplicitSize() {
+		return this.#hasExplicitSize;
+	}
+	// NOTE: Non-explicit size windows should not use layout-altering size transitions
+	public get contentWrapperTransition(): ContentWrapperTransition {
+		return (
+			this.#contentWrapperTransition ??
+			(this.#hasExplicitSize ? slide : (node, params) => fly(node, { ...params, y: 8 }))
+		);
+	}
+	public set contentWrapperTransition(transition: ContentWrapperTransition | undefined) {
+		this.#contentWrapperTransition = transition;
+	}
+	public scaleToContent() {
+		const element = this._element;
+		const contentWrapper = element?.querySelector<HTMLElement>('.display-window-content-wrapper');
+		const content = element?.querySelector<HTMLElement>('.display-window-content');
+		if (!element || !contentWrapper || !content) return false;
+
+		const elementStyle = element.style.cssText;
+		const wrapperStyle = contentWrapper.style.cssText;
+		const contentStyle = content.style.cssText;
+		let width: number;
+		let height: number;
+
+		try {
+			element.style.setProperty('width', 'max-content', 'important');
+			element.style.setProperty('height', 'auto', 'important');
+			element.style.setProperty('transform', 'none', 'important');
+			contentWrapper.style.setProperty('height', 'auto', 'important');
+			contentWrapper.style.setProperty('flex', 'none', 'important');
+			content.style.setProperty('flex', 'none', 'important');
+
+			width = element.getBoundingClientRect().width;
+			if (this.#maxSize && width > this.#maxSize.x) width = this.#maxSize.x;
+			if (width < this.#minSize.x) width = this.#minSize.x;
+
+			element.style.setProperty('width', `${width}px`, 'important');
+			height = element.getBoundingClientRect().height;
+		} finally {
+			element.style.cssText = elementStyle;
+			contentWrapper.style.cssText = wrapperStyle;
+			content.style.cssText = contentStyle;
+		}
+
+		this.size = new Vec2(width, height);
+		return true;
 	}
 	public setSize(w?: number, h?: number) {
 		this.size = new Vec2(w ?? this.#size.x, h ?? this.#size.y);

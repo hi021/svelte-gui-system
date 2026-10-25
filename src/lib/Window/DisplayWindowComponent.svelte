@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fade, scale, slide } from 'svelte/transition';
+	import { fade, scale } from 'svelte/transition';
+	import Icon from '../Icon/Icon.svelte';
 	import { KeyAction } from '../Keybind/KeyActionEnum';
 	import { KeybindService } from '../Keybind/KeybindService';
-	import Icon from '../Icon/Icon.svelte';
 	import WindowButton from './Button/WindowButtonComponent.svelte';
 	import type { DisplayWindow } from './DisplayWindow.svelte';
 
@@ -81,6 +81,7 @@
 	onMount(() => {
 		if (!dWindow.element) return console.error(`Window initialization error! No DOM element bound`, dWindow.toString());
 
+		if (!dWindow.hasExplicitSize) dWindow.scaleToContent();
 		dWindow.element.addEventListener('keyup', handleKeyUp);
 		dWindow.element.addEventListener('keydown', handleKeyDown);
 		dWindow.element.addEventListener('mousedown', handleMousedown);
@@ -95,12 +96,14 @@
 
 <!-- TODO: finish z-index layer ordering shenanigans -->
 <!-- TODO?: prevent window height going below button container height unless minimized -->
-<!-- TODO: block tabindex from venturing outside of current window - especially if it's a window with a backdrop -->
+<!-- TODO!: block tabindex from venturing outside of current window - especially if it's a window with a backdrop -->
 
 {#if dWindow.backdropVisible}
 	<div
 		class="display-window-backdrop unselectable"
 		data-window-class={dWindow.objectClass}
+		data-window-tag={dWindow.tag}
+		data-window-state={dWindow.windowState}
 		style="--z-index: {dWindow.zIndex}"
 		transition:fade|global={{ duration: 120 }}>
 	</div>
@@ -111,8 +114,9 @@
 	bind:this={dWindow._element}
 	class="display-window-container unselectable"
 	data-window-class={dWindow.objectClass}
-	data-edit-mode={editMode}
+	data-window-tag={dWindow.tag}
 	data-window-state={dWindow.windowState}
+	data-edit-mode={editMode}
 	draggable="false"
 	style={dWindow.windowContainerCss}
 	tabindex="0"
@@ -163,7 +167,7 @@
 	<div
 		class="display-window-content-wrapper scrollbar-dark"
 		style={dWindow.contentContainerCss}
-		transition:slide|global={{ duration: 150 }}>
+		transition:dWindow.contentWrapperTransition|global={{ duration: 150 }}>
 		<div class="display-window-content">
 			{@render dWindow.content(dWindow.props)}
 		</div>
