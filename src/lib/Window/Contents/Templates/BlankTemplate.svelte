@@ -4,4 +4,5 @@
 
 <!-- svelte-ignore block_empty -->
 {#snippet content()}
+
 {/snippet}

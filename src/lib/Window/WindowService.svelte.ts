@@ -22,6 +22,7 @@ type EditingWindow = {
 
 export type CreateWindowParams<P extends object = Record<string, unknown>> = {
 	content: Snippet<[P | undefined]>;
+	tag?: string;
 	props?: P;
 	title?: string;
 	objectClass?: string;
@@ -53,6 +54,7 @@ export class WindowService {
 	static readonly TOP_Z_INDEX = WindowService.DEFAULT_Z_INDEX + WindowService.MAX_WINDOWS + 3;
 
 	readonly #windows = new Map<number, ManagedWindow>();
+	readonly #windowsByTag = new Map<string, ManagedWindow>();
 	readonly #windowsStore = writable<readonly ManagedWindow[]>(Object.freeze([]));
 	readonly #windowsReadable: Readable<readonly ManagedWindow[]> = readonly(this.#windowsStore);
 	readonly #windowsOnTop = new Set<number>();
@@ -173,6 +175,10 @@ export class WindowService {
 
 	public getWindowById(id: number) {
 		return this.#windows.get(id);
+	}
+
+	public getWindowByTag(tag: string) {
+		return this.#windowsByTag.get(tag);
 	}
 
 	public getWindowByZIndex(zIndex: number) {
@@ -370,8 +376,10 @@ export class WindowService {
 		return node instanceof HTMLElement && node.nodeName === 'DIV' && node.hasAttribute('data-window-class');
 	}
 
-	public createWindow<P extends object = Record<string, unknown>>(options: CreateWindowParams<P>): DisplayWindow<P> {
-		const dWindow = new DisplayWindow<P>(this.determineNewWindowId(), options.content);
+	public createWindow<P extends object = Record<string, unknown>>(
+		options: CreateWindowParams<P>
+	): DisplayWindow<P> | undefined {
+		const dWindow = new DisplayWindow<P>(this.determineNewWindowId(), options.content, options.tag);
 
 		if (options.title) dWindow.title = options.title;
 		if (options.objectClass) dWindow.objectClass = options.objectClass;
@@ -401,7 +409,7 @@ export class WindowService {
 		return dWindow;
 	}
 
-	public createClassWindow<T extends ManagedWindow>(dWindow: T): T {
+	public createClassWindow<T extends ManagedWindow>(dWindow: T): T | undefined {
 		dWindow.id = this.determineNewWindowId();
 		this.registerWindow(dWindow);
 		return dWindow;
@@ -409,9 +417,11 @@ export class WindowService {
 
 	private registerWindow(dWindow: ManagedWindow) {
 		if (this.#disposed)
-			throw new Error('Failed to register window: cannot perform actions with a disposed WindowService');
+			throw new Error('Failed to register window: cannot perform any action with a disposed WindowService');
 		if (this.#windows.size >= WindowService.MAX_WINDOWS)
 			throw new Error(`Failed to register window: maximum number of windows is ${WindowService.MAX_WINDOWS}`);
+		if (dWindow.tag !== undefined && this.#windowsByTag.has(dWindow.tag))
+			throw new Error(`Failed to register window: tag "${dWindow.tag}" is already in use`);
 
 		if (dWindow.focused) this.focusWindow(dWindow);
 		if (dWindow.alwaysOnTop) this.#windowsOnTop.add(dWindow.id);
@@ -428,12 +438,15 @@ export class WindowService {
 
 	private setWindowsMap(dWindow: ManagedWindow) {
 		this.#windows.set(dWindow.id, dWindow);
+		if (dWindow.tag !== undefined) this.#windowsByTag.set(dWindow.tag, dWindow);
 		this.publishWindowMembership();
 	}
 
 	private removeWindowsMap(dWindow: ManagedWindow) {
 		if (this.#windows.get(dWindow.id) !== dWindow) return;
 		this.#windows.delete(dWindow.id);
+		if (dWindow.tag !== undefined && this.#windowsByTag.get(dWindow.tag) === dWindow)
+			this.#windowsByTag.delete(dWindow.tag);
 		this.publishWindowMembership();
 	}
 

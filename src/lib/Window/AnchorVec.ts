@@ -17,7 +17,7 @@ export class AnchorVec {
 	public static CENTER_LEFT() {
 		return new AnchorVec(AnchorPointX.LEFT, AnchorPointY.CENTER);
 	}
-	public static CENTER_CENTER() {
+	public static CENTER() {
 		return new AnchorVec(AnchorPointX.CENTER, AnchorPointY.CENTER);
 	}
 	public static CENTER_RIGHT() {

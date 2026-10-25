@@ -12,11 +12,11 @@ import { WindowService } from './WindowService.svelte';
 export type WindowEditMode = 'moving' | 'resizing' | null;
 
 export class DisplayWindow<P extends object = Record<string, unknown>> {
-	// TODO: unique tag so the same window cannot be opened twice
 	// TODO: make default initial size fit to content
 	// TODO: store initial size and position (not $state)
 	// TODO: title bar & buttons styling
 	public objectClass = 'NONE';
+	public readonly tag?: string;
 	public title = $state('');
 	public layout = $state(new WindowLayout());
 	public minimizable = $state(true);
@@ -45,9 +45,10 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	#parent: DisplayWindow<any> | undefined;
 	#children = $state<DisplayWindow<any>[]>([]);
 
-	public constructor(id: number, content: Snippet<[P | undefined]>) {
+	public constructor(id: number, content: Snippet<[P | undefined]>, tag?: string) {
 		this.#id = id;
 		this.#content = content;
+		this.tag = tag;
 	}
 
 	public get id() {
@@ -385,6 +386,6 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	}
 
 	public toString() {
-		return `Window [#${this.#id}, CLASS: "${this.objectClass}"] (z: ${this.zIndex}) - "${this.title}"`;
+		return `Window [#${this.#id},${this.tag === undefined ? '' : ` TAG: "${this.tag}"`} CLASS: "${this.objectClass}"] (z: ${this.zIndex}) - "${this.title}"`;
 	}
 }
