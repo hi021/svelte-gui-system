@@ -1,8 +1,9 @@
 import type { Audio } from '../Audio/Audio.svelte';
-import { GameEvent } from './GameEvent';
+import { ApplicationEvent } from './ApplicationEvent';
 
-export abstract class AudioEvent extends GameEvent {
-	public audioObject: Audio;
+export abstract class AudioEvent extends ApplicationEvent {
+	public override readonly className: string = 'AudioEvent';
+	public readonly audioObject: Audio;
 
 	public constructor(audioObject: Audio) {
 		super();

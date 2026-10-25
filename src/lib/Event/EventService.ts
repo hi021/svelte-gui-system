@@ -1,7 +1,7 @@
 import { readonly, writable } from 'svelte/store';
 import { AudioPlayEvent } from './AudioPlayEvent';
 import { AudioStopEvent } from './AudioStopEvent';
-import { GameEvent } from './GameEvent';
+import { ApplicationEvent } from './ApplicationEvent';
 import { WindowCloseEvent } from './WindowCloseEvent';
 
 export class EventService {
@@ -18,8 +18,8 @@ export class EventService {
 		return readonly(this.#audioStopEvent);
 	}
 
-	public static dispatchEvent(event: GameEvent) {
-		console.debug('Received game event: ', event);
+	public static dispatchEvent(event: ApplicationEvent) {
+		console.debug(`Received application event: ${event}`);
 
 		if (event instanceof WindowCloseEvent) {
 			return this.#windowCloseEvent.set(event);
@@ -31,6 +31,6 @@ export class EventService {
 			return this.#audioStopEvent.set(event);
 		}
 
-		console.warn(`Unknown game event received: ${event}`);
+		console.warn(`Attempted to create application event without dispatcher: ${event}`);
 	}
 }

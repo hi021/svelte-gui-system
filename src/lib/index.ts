@@ -13,7 +13,7 @@ export { AudioEvent } from './Event/AudioEvent';
 export { AudioPlayEvent } from './Event/AudioPlayEvent';
 export { AudioStopEvent } from './Event/AudioStopEvent';
 export { EventService } from './Event/EventService';
-export { GameEvent } from './Event/GameEvent';
+export { ApplicationEvent } from './Event/ApplicationEvent';
 export { WindowCloseEvent } from './Event/WindowCloseEvent';
 export { WindowEvent } from './Event/WindowEvent';
 export { default as Icon } from './Icon/Icon.svelte';

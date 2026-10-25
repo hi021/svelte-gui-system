@@ -53,7 +53,7 @@ body[data-resize-direction='se'] {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
-	font-size: 0.875rem;
+	font-size: 0.875em;
 }
 .display-window-titlebar-btn-container {
 	display: flex;
