@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 import type { MethodsOnly } from '../Util/Util';
 import { Audio } from './Audio.svelte';
+import { aliasAudioAccess } from './AudioInternal';
 
 export class AudioService {
 	static readonly MAX_AUDIO_OBJECTS = 512;
@@ -52,6 +53,7 @@ export class AudioService {
 		});
 
 		this.updateStore();
+		aliasAudioAccess(proxy, audio);
 		return proxy;
 	}
 

@@ -2,6 +2,7 @@
 	import { onDestroy } from 'svelte';
 	import type { Audio as AudioObject } from './Audio.svelte';
 	import AudioComponent from './AudioComponent.svelte';
+	import { setAudioState } from './AudioInternal';
 	import { AudioService } from './AudioService';
 	import { MediaState } from './MediaState';
 
@@ -14,16 +15,13 @@
 	});
 
 	function onended(_: Event, audio: AudioObject) {
-		// @ts-expect-error allow svelte components to modify state
-		audio._state = MediaState.ENDED;
+		setAudioState(audio, MediaState.ENDED);
 	}
 	function onpause(_: Event, audio: AudioObject) {
-		// @ts-expect-error allow svelte components to modify state
-		audio._state = MediaState.PAUSED;
+		setAudioState(audio, MediaState.PAUSED);
 	}
 	function onplay(_: Event, audio: AudioObject) {
-		// @ts-expect-error allow svelte components to modify state
-		audio._state = MediaState.PLAYING;
+		setAudioState(audio, MediaState.PLAYING);
 	}
 </script>
 

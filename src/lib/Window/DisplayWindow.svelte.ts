@@ -7,6 +7,7 @@ import { AnchorPointX } from './AnchorPointX';
 import { AnchorPointY } from './AnchorPointY';
 import { AnchorVec } from './AnchorVec';
 import { WindowButton } from './Button/WindowButton.svelte';
+import { registerWindowAccess } from './DisplayWindowInternal';
 import { WindowLayout } from './WindowLayout.svelte';
 import { WindowService } from './WindowService.svelte';
 
@@ -53,6 +54,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		this.#id = id;
 		this.#content = content;
 		this.tag = tag;
+		registerWindowAccess(this, (element) => (this._element = element));
 	}
 
 	public get id() {

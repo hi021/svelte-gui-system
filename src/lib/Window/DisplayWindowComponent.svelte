@@ -6,6 +6,7 @@
 	import { KeybindService } from '../Keybind/KeybindService';
 	import WindowButton from './Button/WindowButtonComponent.svelte';
 	import type { DisplayWindow } from './DisplayWindow.svelte';
+	import { setWindowElement } from './DisplayWindowInternal';
 
 	let {
 		dWindow,
@@ -27,6 +28,7 @@
 		onresizestart: (e: MouseEvent) => void;
 	} = $props();
 	let editMode = $derived(dWindow.editMode);
+	let windowElement: HTMLDivElement | undefined;
 	let pendingMove = false;
 
 	function cancelPendingMove() {
@@ -79,6 +81,7 @@
 	};
 
 	onMount(() => {
+		setWindowElement(dWindow, windowElement);
 		if (!dWindow.element) return console.error(`Window initialization error! No DOM element bound`, dWindow.toString());
 
 		if (!dWindow.hasExplicitSize) dWindow.scaleToContent();
@@ -90,6 +93,7 @@
 			dWindow.element!.removeEventListener('keydown', handleKeyDown);
 			dWindow.element!.removeEventListener('mousedown', handleMousedown);
 			cancelPendingMove();
+			setWindowElement(dWindow, undefined);
 		};
 	});
 </script>
@@ -111,7 +115,7 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
 	transition:scale={{ duration: 150 }}
-	bind:this={dWindow._element}
+	bind:this={windowElement}
 	class="display-window-container unselectable"
 	data-window-class={dWindow.objectClass}
 	data-window-tag={dWindow.tag}

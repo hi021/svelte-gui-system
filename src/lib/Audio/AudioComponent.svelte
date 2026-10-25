@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Audio } from './Audio.svelte';
+	import { setAudioElement, setAudioState } from './AudioInternal';
 	import { MediaState } from './MediaState';
 
 	let {
@@ -15,10 +16,14 @@
 		onended: (e: Event, audio: Audio) => boolean | void;
 	} = $props();
 
-	let audioTypeWorkaround: any = $derived(audio);
+	let audioElement: HTMLAudioElement | undefined = $state();
+	$effect(() => {
+		setAudioElement(audio, audioElement);
+		return () => setAudioElement(audio, undefined);
+	});
+
 	onMount(() => {
-		// @ts-expect-error allow svelte components to modify state
-		if (!audio.lazy) audio._state = MediaState.READY;
+		if (!audio.lazy) setAudioState(audio, MediaState.READY);
 	});
 </script>
 
@@ -27,7 +32,7 @@
 		data-audio-class={audio.objectClass}
 		data-audio-tag={audio.tag}
 		bind:volume={audio.volume}
-		bind:this={audioTypeWorkaround._element}
+		bind:this={audioElement}
 		bind:playbackRate={audio.speed}
 		src={audio.path}
 		onplay={(e) => onplay(e, audio)}

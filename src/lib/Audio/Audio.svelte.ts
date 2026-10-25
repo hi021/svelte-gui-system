@@ -1,12 +1,13 @@
 import { MediaState } from './MediaState';
+import { registerAudioAccess } from './AudioInternal';
 
 export class Audio {
 	public objectClass = 'NONE';
 	public path: string;
 	public tag: string | undefined = $state(undefined);
 	public looping = $state(false);
-	private _element: HTMLAudioElement | undefined = $state(undefined); // Setter not to be used outside the svelte component!
-	private _state = $state(MediaState.UNDEFINED); // Setter not to be used outside the svelte component!
+	#element: HTMLAudioElement | undefined = $state(undefined);
+	#state = $state(MediaState.UNDEFINED);
 	#id: number;
 	#lazy: boolean;
 	#volume = $state(0.5);
@@ -17,6 +18,11 @@ export class Audio {
 		this.path = path;
 		this.tag = tag;
 		this.#lazy = lazy;
+
+		registerAudioAccess(this, {
+			setElement: (element) => (this.#element = element),
+			setState: (state) => (this.#state = state)
+		});
 	}
 
 	public get id() {
@@ -50,11 +56,11 @@ export class Audio {
 	}
 
 	public get element() {
-		return this._element;
+		return this.#element;
 	}
 
 	public get state() {
-		return this._state;
+		return this.#state;
 	}
 
 	public get lazy() {
@@ -62,26 +68,26 @@ export class Audio {
 	}
 
 	public play() {
-		if (this._state === MediaState.UNDEFINED) {
-			this._state = MediaState.READY;
+		if (this.#state === MediaState.UNDEFINED) {
+			this.#state = MediaState.READY;
 			setTimeout(() => this.play());
 			return;
 		}
 
-		if (!this._element) return;
-		this._element.play();
+		if (!this.#element) return;
+		this.#element.play();
 		// TODO EVENT
 	}
 	public rewind() {
-		if (this._element) this._element.currentTime = 0;
+		if (this.#element) this.#element.currentTime = 0;
 	}
 	public replay() {
-		if (this._state === MediaState.PLAYING) this.rewind();
+		if (this.#state === MediaState.PLAYING) this.rewind();
 		else this.play();
 	}
 	public pause() {
-		if (!this._element) return;
-		this._element.pause();
+		if (!this.#element) return;
+		this.#element.pause();
 		// TODO EVENT
 	}
 	public stop() {
@@ -92,10 +98,10 @@ export class Audio {
 	public remove() {
 		this.#id = 0;
 		this.stop();
-		this._state = MediaState.UNDEFINED;
+		this.#state = MediaState.UNDEFINED;
 	}
 
 	public toString() {
-		return `AudioObject [#${this.#id}, CLASS: "${this.objectClass}"] (path: ${this.path}) state ${this._state} at ${this.volume} volume, ${this.speed}x speed"`;
+		return `AudioObject [#${this.#id}, CLASS: "${this.objectClass}"] (path: ${this.path}) state ${this.#state} at ${this.volume} volume, ${this.speed}x speed"`;
 	}
 }
