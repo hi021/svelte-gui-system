@@ -32,16 +32,18 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public customWindowContainerCss = $state('');
 	public customContentContainerCss = $state('');
 	public props = $state<P | undefined>();
-	private _element: HTMLDivElement | undefined = $state(undefined); // Not to be used outside the svelte component!
+	#element: HTMLDivElement | undefined = $state(undefined);
 	#id = $state(0);
 	#size = $state(new Vec2(600, 400));
+	#initialSize: Vec2 | undefined;
 	#hasExplicitSize = false;
 	#contentWrapperTransition: ContentWrapperTransition | undefined;
 	#position = $state(new Vec2());
+	#initialPosition: Vec2 | undefined;
 	#editMode = $state<WindowEditMode>(null);
 	#minimized = $state(false);
 	#maximized = $state(false);
-	#minSize = $state(new Vec2(160, 36));
+	#minSize = $state(new Vec2(160, 0));
 	#maxSize = $state<Vec2 | undefined>();
 	#anchor = new AnchorVec();
 	#zIndex = $state(WindowService.DEFAULT_Z_INDEX);
@@ -54,7 +56,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		this.#id = id;
 		this.#content = content;
 		this.tag = tag;
-		registerWindowAccess(this, (element) => (this._element = element));
+		registerWindowAccess(this, (element) => (this.#element = element));
 	}
 
 	public get id() {
@@ -75,7 +77,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 
 	// Only use in case of emergency!
 	public get element() {
-		return this._element;
+		return this.#element;
 	}
 
 	public get minimized() {
@@ -109,6 +111,9 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public get size() {
 		return new Vec2(this.#size.x, this.#size.y);
 	}
+	public get initialSize() {
+		return this.#initialSize === undefined ? undefined : new Vec2(this.#initialSize.x, this.#initialSize.y);
+	}
 	public set size(size: Vec2) {
 		if (!(size instanceof Vec2)) throw new TypeError('Invalid window property value provided - size must be a Vec2');
 		this.#hasExplicitSize = true;
@@ -136,7 +141,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		this.#contentWrapperTransition = transition;
 	}
 	public scaleToContent() {
-		const element = this._element;
+		const element = this.#element;
 		const contentWrapper = element?.querySelector<HTMLElement>('.display-window-content-wrapper');
 		const content = element?.querySelector<HTMLElement>('.display-window-content');
 		const titleBar = element?.querySelector<HTMLElement>('.display-window-titlebar');
@@ -173,6 +178,13 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	}
 	public setSize(w?: number, h?: number) {
 		this.size = new Vec2(w ?? this.#size.x, h ?? this.#size.y);
+	}
+	public resetSize() {
+		if (this.#initialSize === undefined)
+			throw new Error(
+				'Size cannot be reset - window has no initial size, possibly because it did not finish initializing'
+			);
+		this.size = this.initialSize as Vec2;
 	}
 
 	public get minSize() {
@@ -230,6 +242,9 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public get position() {
 		return new Vec2(this.#position.x, this.#position.y);
 	}
+	public get initialPosition() {
+		return this.#initialPosition === undefined ? undefined : new Vec2(this.#initialPosition.x, this.#initialPosition.y);
+	}
 	public set position(position: Vec2) {
 		if (!(position instanceof Vec2))
 			throw new TypeError('Invalid window property value provided - position must be a Vec2');
@@ -237,6 +252,19 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	}
 	public setPosition(w?: number, h?: number) {
 		this.#position = new Vec2(w ?? this.#position.x, h ?? this.#position.y);
+	}
+	public resetPosition() {
+		if (this.initialPosition === undefined)
+			throw new Error(
+				'Position cannot be reset - window has no initial position, possibly because it did not finish initializing'
+			);
+		this.position = this.initialPosition;
+	}
+	public captureInitialGeometry() {
+		if (this.#initialSize !== undefined || this.#initialPosition !== undefined)
+			throw new Error('Initial position or size cannot be set - this window already had its geometry captured');
+		this.#initialSize = this.size;
+		this.#initialPosition = this.position;
 	}
 
 	public get anchor() {

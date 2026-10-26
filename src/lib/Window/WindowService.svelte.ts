@@ -425,6 +425,7 @@ export class WindowService {
 				`Failed to register window: tag "${dWindow.tag}" is already in use - this is most probably intended behavior`
 			);
 
+		dWindow.captureInitialGeometry();
 		if (dWindow.focused) this.focusWindow(dWindow);
 		if (dWindow.alwaysOnTop) this.#windowsOnTop.add(dWindow.id);
 		this.setWindowsMap(dWindow);
