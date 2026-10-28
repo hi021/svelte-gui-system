@@ -80,10 +80,14 @@
 		onfocus(e);
 		onresizestart(e);
 	};
+	const handleBlur = (e: FocusEvent) => {
+		if (e.relatedTarget instanceof Node && windowElement?.contains(e.relatedTarget)) return;
+		onblur(e);
+	};
 
 	onMount(() => {
 		setWindowElement(dWindow, windowElement);
-		if (!dWindow.element) return console.error(`Window initialization error! No DOM element bound`, dWindow.toString());
+		if (!dWindow.element) return console.error(`Window initialization error - No DOM element bound`, dWindow.toString());
 
 		if (!dWindow.hasExplicitSize) dWindow.scaleToContent();
 		dWindow.element.addEventListener('keyup', handleKeyUp);
@@ -128,7 +132,7 @@
 	style={dWindow.windowContainerCss}
 	tabindex="0"
 	{onfocus}
-	{onblur}
+	onblur={handleBlur}
 	role="dialog">
 	{#if dWindow.layout.fullTitleBar}
 		<div class="display-window-titlebar" onmousedown={beginPendingMove} ondblclick={onmaximize} role="contentinfo">
