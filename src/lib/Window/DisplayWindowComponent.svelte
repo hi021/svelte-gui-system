@@ -4,6 +4,7 @@
 	import Icon from '../Icon/Icon.svelte';
 	import { KeyAction } from '../Keybind/KeyActionEnum';
 	import { KeybindService } from '../Keybind/KeybindService';
+	import Util from '../Util/Util';
 	import WindowButton from './Button/WindowButtonComponent.svelte';
 	import type { DisplayWindow } from './DisplayWindow.svelte';
 	import { setWindowElement } from './DisplayWindowInternal';
@@ -116,10 +117,12 @@
 <div
 	transition:scale={{ duration: 150 }}
 	bind:this={windowElement}
+	use:Util.trapFocus
 	class="display-window-container unselectable"
 	data-window-class={dWindow.objectClass}
 	data-window-tag={dWindow.tag}
 	data-window-state={dWindow.windowState}
+	data-window-focused={dWindow.focused ? '' : undefined}
 	data-edit-mode={editMode}
 	draggable="false"
 	style={dWindow.windowContainerCss}

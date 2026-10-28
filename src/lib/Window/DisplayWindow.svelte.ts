@@ -15,9 +15,7 @@ export type WindowEditMode = 'moving' | 'resizing' | null;
 export type ContentWrapperTransition = (node: Element, params: { duration: number }) => ReturnType<typeof slide>;
 
 export class DisplayWindow<P extends object = Record<string, unknown>> {
-	// TODO: store initial size and position (not $state)
 	// TODO: focus window with existing tag on creation
-	// TODO?: title bar & buttons styling - can be done through css data- attribute pickers for now
 	public objectClass = 'NONE';
 	public readonly tag?: string;
 	public title = $state('');
@@ -381,7 +379,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		return this.#children;
 	}
 	public addChild(dWindow: DisplayWindow<any>) {
-		// TODO: Implement hierarchy membership updates.
+		// TODO: Implement hierarchy membership updates
 		if (!WindowService.windowExists(dWindow))
 			return console.warn(`Attempted to add already orphaned window to ${this}`);
 	}

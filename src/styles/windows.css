@@ -6,7 +6,7 @@
 	z-index: var(--z-index);
 }
 
-.display-window-container:focus {
+.display-window-container[data-window-focused] {
 	outline: 2px solid var(--color-darker);
 }
 .display-window-container {
