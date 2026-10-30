@@ -24,6 +24,7 @@
 {#each $windows as dWindow (dWindow.id)}
 	<DisplayWindowComponent
 		{dWindow}
+		isFocused={(window) => windowManager.isFocused(window)}
 		onclose={() => EventService.dispatchEvent(new WindowCloseEvent(dWindow))}
 		onminimize={(e) => windowManager.handleMinimize(e, dWindow)}
 		onmaximize={(e) => windowManager.handleMaximize(e, dWindow)}

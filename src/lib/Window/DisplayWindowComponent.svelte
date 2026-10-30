@@ -11,6 +11,7 @@
 
 	let {
 		dWindow,
+		isFocused,
 		onclose,
 		onminimize,
 		onmaximize,
@@ -20,6 +21,7 @@
 		onresizestart
 	}: {
 		dWindow: DisplayWindow<any>;
+		isFocused: (dWindow: DisplayWindow<any>) => boolean;
 		onclose: () => void;
 		onminimize: (e: Event) => void;
 		onmaximize: (e: Event) => void;
@@ -87,7 +89,8 @@
 
 	onMount(() => {
 		setWindowElement(dWindow, windowElement);
-		if (!dWindow.element) return console.error(`Window initialization error - No DOM element bound`, dWindow.toString());
+		if (!dWindow.element)
+			return console.error(`Window initialization error - No DOM element bound`, dWindow.toString());
 
 		if (!dWindow.hasExplicitSize) dWindow.scaleToContent();
 		dWindow.element.addEventListener('keyup', handleKeyUp);
@@ -103,9 +106,7 @@
 	});
 </script>
 
-<!-- TODO: finish z-index layer ordering shenanigans -->
 <!-- TODO?: prevent window height going below button container height unless minimized -->
-<!-- TODO!: block tabindex from venturing outside of current window - especially if it's a window with a backdrop -->
 
 {#if dWindow.backdropVisible}
 	<div
@@ -126,7 +127,7 @@
 	data-window-class={dWindow.objectClass}
 	data-window-tag={dWindow.tag}
 	data-window-state={dWindow.windowState}
-	data-window-focused={dWindow.focused ? '' : undefined}
+	data-window-focused={isFocused(dWindow) ? '' : undefined}
 	data-edit-mode={editMode}
 	draggable="false"
 	style={dWindow.windowContainerCss}

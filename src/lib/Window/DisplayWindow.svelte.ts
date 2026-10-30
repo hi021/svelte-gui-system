@@ -16,6 +16,7 @@ export type ContentWrapperTransition = (node: Element, params: { duration: numbe
 
 export class DisplayWindow<P extends object = Record<string, unknown>> {
 	// TODO: focus window with existing tag on creation
+	// TODO: reduced motion (disable animations)
 	public objectClass = 'NONE';
 	public readonly tag?: string;
 	public title = $state('');
@@ -24,8 +25,6 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public maximizable = $state(true);
 	public resizeable = $state(true);
 	public draggable = $state(true);
-	public alwaysOnTop = $state(false);
-	public focused = $state(true);
 	public backdropVisible = $state(false);
 	public customWindowContainerCss = $state('');
 	public customContentContainerCss = $state('');
@@ -38,13 +37,14 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	#contentWrapperTransition: ContentWrapperTransition | undefined;
 	#position = $state(new Vec2());
 	#initialPosition: Vec2 | undefined;
+	#alwaysOnTop = $state(false);
 	#editMode = $state<WindowEditMode>(null);
 	#minimized = $state(false);
 	#maximized = $state(false);
 	#minSize = $state(new Vec2(160, 0));
 	#maxSize = $state<Vec2 | undefined>();
 	#anchor = new AnchorVec();
-	#zIndex = $state(WindowService.DEFAULT_Z_INDEX);
+	#zIndex = $state(WindowService.BOTTOM_Z_INDEX);
 	#buttons = $state<WindowButton[]>([]);
 	#content: Snippet<[P | undefined]>;
 	#parent: DisplayWindow<any> | undefined;
@@ -325,12 +325,38 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		}
 	}
 
+	public get alwaysOnTop() {
+		return this.#alwaysOnTop;
+	}
+	public set alwaysOnTop(alwaysOnTop: boolean) {
+		if (this.#alwaysOnTop === alwaysOnTop) return;
+		this.#alwaysOnTop = alwaysOnTop;
+
+		// TODO NOW send event and handle by bringing to top
+	}
+
 	public get zIndex() {
 		return this.#zIndex;
 	}
 	public set zIndex(zIndex: number) {
 		if (typeof zIndex !== 'number' || isNaN(zIndex))
 			throw new TypeError('Invalid window property value provided - zIndex must be a numerical value');
+
+		if (this.#alwaysOnTop && zIndex <= WindowService.TOP_Z_INDEX)
+			throw new Error(
+				`Invalid window property value provided - always on top zIndex must not be lower or equal ${WindowService.TOP_Z_INDEX}`
+			);
+		if (!this.#alwaysOnTop && zIndex > WindowService.TOP_Z_INDEX)
+			throw new Error(
+				`Invalid window property value provided - non-always-on-top zIndex must not be above ${WindowService.TOP_Z_INDEX}`
+			);
+		if (zIndex < WindowService.BOTTOM_Z_INDEX)
+			throw new Error(
+				`Invalid window property value provided - zIndex must not be below ${WindowService.BOTTOM_Z_INDEX}`
+			);
+
+		if (this.#zIndex === zIndex) return;
+		// TODO NOW event and handle by setting z index map
 		this.#zIndex = zIndex;
 	}
 

@@ -50,28 +50,36 @@ export type CreateWindowParams<P extends object = Record<string, unknown>> = {
 
 export class WindowService {
 	static readonly MAX_WINDOWS = 128;
-	static readonly DEFAULT_Z_INDEX = 3;
-	static readonly TOP_Z_INDEX = WindowService.DEFAULT_Z_INDEX + WindowService.MAX_WINDOWS + 3;
+	static readonly BOTTOM_Z_INDEX = 3;
+	static readonly TOP_Z_INDEX = WindowService.BOTTOM_Z_INDEX * 3 + WindowService.MAX_WINDOWS; // highest normal window z-index, always on top windows start from this index + 1
 
-	readonly #windows = new Map<number, ManagedWindow>();
+	readonly #windowsById = new Map<number, ManagedWindow>();
 	readonly #windowsByTag = new Map<string, ManagedWindow>();
+	readonly #windowsByZIndex = new Map<number, ManagedWindow[]>();
 	readonly #windowsStore = writable<readonly ManagedWindow[]>(Object.freeze([]));
 	readonly #windowsReadable: Readable<readonly ManagedWindow[]> = readonly(this.#windowsStore);
-	readonly #windowsOnTop = new Set<number>();
-	readonly #windowsByZIndex = new Map<number, number>();
 	#container: HTMLElement | undefined;
-	#focusedWindow: ManagedWindow | null = null;
-	#editingWindow: EditingWindow | null = null;
+	#focusedWindow = $state<ManagedWindow | null>(null);
+	#editingWindow = $state<EditingWindow | null>(null);
 	#pendingDragEvent: MouseEvent | null = null;
 	#dragAnimationFrame: number | null = null;
 	#windowIdSequence = 1;
-	readonly #unsubscribeClose: () => void;
 	#disposed = false;
+	readonly #unsubscribeClose: () => void;
+
+	public static isNodeDisplayWindow(node: EventTarget | HTMLElement) {
+		return (
+			node instanceof HTMLElement &&
+			node.nodeName === 'DIV' &&
+			node.hasAttribute('data-window-state') &&
+			node.classList.contains('display-window-container')
+		);
+	}
 
 	public constructor(container?: HTMLElement) {
 		this.#unsubscribeClose = EventService.windowCloseEvent.subscribe(
 			(event) =>
-				event && [...this.#windows.values()].includes(event.sourceWindow) && this.closeWindow(event.sourceWindow)
+				event && [...this.#windowsById.values()].includes(event.sourceWindow) && this.closeWindow(event.sourceWindow)
 		);
 
 		if (container) this.initialize(container);
@@ -88,16 +96,62 @@ export class WindowService {
 	public get focusedWindow() {
 		return this.#focusedWindow;
 	}
+	public isFocused(dWindow: ManagedWindow) {
+		return this.#focusedWindow === dWindow;
+	}
 	public get editingWindow() {
 		return this.#editingWindow;
 	}
 
-	private get topZIndex() {
-		return this.#windowsByZIndex.size ? Math.max(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
+	// normal (non-always-on-top) windows only
+	public get highestOccupiedZIndex() {
+		for (let i = WindowService.TOP_Z_INDEX; i >= WindowService.BOTTOM_Z_INDEX; --i) {
+			if (this.#windowsByZIndex.get(i)?.length) return i;
+		}
+
+		return null;
 	}
-	// @ts-expect-error unused atm
-	private get bottomZIndex() {
-		return this.#windowsByZIndex.size ? Math.min(...this.#windowsByZIndex.keys()) : WindowService.DEFAULT_Z_INDEX;
+	public get highestUnoccupiedZIndex() {
+		for (let i = WindowService.TOP_Z_INDEX; i >= WindowService.BOTTOM_Z_INDEX; --i) {
+			if (!this.#windowsByZIndex.get(i)?.length) return i;
+		}
+
+		throw new Error(
+			'Invalid state - all normal (non-always-on-top) z-indexes are allocated - were the static WindowService fields tampered with?'
+		);
+	}
+	public get lowestOccupiedZIndex() {
+		for (let i = WindowService.BOTTOM_Z_INDEX; i <= WindowService.TOP_Z_INDEX; ++i) {
+			if (this.#windowsByZIndex.get(i)?.length) return i;
+		}
+
+		return null;
+	}
+	public get lowestUnoccupiedZIndex() {
+		for (let i = WindowService.BOTTOM_Z_INDEX; i <= WindowService.TOP_Z_INDEX; ++i) {
+			if (!this.#windowsByZIndex.get(i)?.length) return i;
+		}
+
+		throw new Error(
+			'Invalid state - all normal (non-always-on-top) z-indexes are allocated - were the static WindowService fields tampered with?'
+		);
+	}
+
+	public get highestOccupiedAlwaysOnTopZIndex() {
+		let max: number | null = null;
+		for (const i of this.#windowsByZIndex.keys()) {
+			if (i > WindowService.TOP_Z_INDEX && (max === null || i > max)) max = i;
+		}
+
+		return max;
+	}
+	public get lowestOccupiedAlwaysOnTopZIndex() {
+		let min: number | null = null;
+		for (const i of this.#windowsByZIndex.keys()) {
+			if (i > WindowService.TOP_Z_INDEX && (min === null || i < min)) min = i;
+		}
+
+		return min;
 	}
 
 	public get containerSize() {
@@ -174,16 +228,34 @@ export class WindowService {
 	}
 
 	public getWindowById(id: number) {
-		return this.#windows.get(id);
+		return this.#windowsById.get(id);
 	}
+	public getWindowsByIds(ids: number[]) {
+		const map = new Map<number, ManagedWindow | undefined>();
+		for (const id of ids) map.set(id, this.getWindowById(id));
 
+		return map;
+	}
 	public getWindowByTag(tag: string) {
 		return this.#windowsByTag.get(tag);
 	}
+	public getWindowsByClass(windowClass: string) {
+		return this.getWindowsByPredicates({ objectClass: windowClass }, PredicateMode.ANY);
+	}
+	public getWindowsByZIndex(zIndex: number) {
+		return this.#windowsByZIndex.get(zIndex) ?? [];
+	}
 
-	public getWindowByZIndex(zIndex: number) {
-		const id = this.#windowsByZIndex.get(zIndex);
-		return id ? this.getWindowById(id) : undefined;
+	// Should be avoided - use tags, ids, classes, or keep references instead
+	public getWindowsByTitle(title: string) {
+		return this.getWindowsByPredicates({ title }, PredicateMode.ANY);
+	}
+	// Should be avoided - use tags, ids, classes, or keep references instead
+	public getFirstWindowByTitle(title: string) {
+		for (const [_, dWindow] of this.#windowsById) {
+			if (dWindow.title === title) return dWindow;
+		}
+		return;
 	}
 
 	public getWindowsByPredicates<T extends ManagedWindow>(
@@ -191,30 +263,15 @@ export class WindowService {
 		mode = PredicateMode.ALL
 	) {
 		const windows: ManagedWindow[] = [];
-		for (const [_, dWindow] of this.#windows) {
+		for (const [_, dWindow] of this.#windowsById) {
 			if (dWindow.matchesPredicates(predicates, mode)) windows.push(dWindow);
 		}
 		return windows;
 	}
 
-	public getWindowsByClass(windowClass: string) {
-		return this.getWindowsByPredicates({ objectClass: windowClass }, PredicateMode.ANY);
-	}
-
-	public getWindowsByTitle(title: string) {
-		return this.getWindowsByPredicates({ title }, PredicateMode.ANY);
-	}
-
-	public getFirstWindowByTitle(title: string) {
-		for (const [_, dWindow] of this.#windows) {
-			if (dWindow.title === title) return dWindow;
-		}
-		return;
-	}
-
 	public debugAllObjects() {
 		let debugString = '';
-		for (const [i, dWindow] of this.#windows) debugString += i + '\t' + dWindow.toString() + '\n';
+		for (const [i, dWindow] of this.#windowsById) debugString += i + '\t' + dWindow.toString() + '\n';
 		console.log(debugString);
 	}
 
@@ -223,17 +280,15 @@ export class WindowService {
 	}
 
 	public closeWindow(dWindow: ManagedWindow) {
-		if (this.#windows.get(dWindow.id) !== dWindow) return false;
+		if (this.#windowsById.get(dWindow.id) !== dWindow) return false;
 		if (this.#focusedWindow?.id === dWindow.id) this.#focusedWindow = null;
-		if (dWindow.alwaysOnTop) this.#windowsOnTop.delete(dWindow.id);
 		if (this.#editingWindow?.dWindow === dWindow) {
 			this.cancelPendingDragUpdate();
 			dWindow.setEditMode(null);
 			this.#editingWindow = null;
 		}
 
-		this.#windowsByZIndex.delete(dWindow.zIndex);
-		this.removeWindowsMap(dWindow);
+		this.removeWindowFromMaps(dWindow);
 		dWindow.close();
 		return true;
 	}
@@ -352,28 +407,45 @@ export class WindowService {
 		this.focusWindow(dWindow);
 	}
 	public handleBlur(_: FocusEvent, __: ManagedWindow) {
-		this.unfocusWindow();
+		this.blurWindow();
 	}
 
 	public focusWindow(dWindow: ManagedWindow) {
-		if (this.#focusedWindow == dWindow) return;
-		this.unfocusWindow();
+		if (this.#focusedWindow === dWindow) return;
+		this.blurWindow();
 
-		dWindow.focused = true;
 		this.#focusedWindow = dWindow;
-		// TODO
-		this.setFocusedWindowZIndex(dWindow);
+		this.bringToTop(dWindow);
 	}
 
-	public unfocusWindow() {
-		if (!this.#focusedWindow) return;
-
-		this.#focusedWindow.focused = false;
+	public blurWindow() {
 		this.#focusedWindow = null;
 	}
 
-	public static isNodeDisplayWindow(node: EventTarget) {
-		return node instanceof HTMLElement && node.nodeName === 'DIV' && node.hasAttribute('data-window-class');
+	public dispose() {
+		if (this.#disposed) return;
+
+		this.#disposed = true;
+		this.#unsubscribeClose();
+		this.cancelPendingDragUpdate();
+		if (this.#editingWindow) this.#editingWindow.dWindow.setEditMode(null);
+		this.#editingWindow = null;
+
+		//TODO?: close & remove all windows
+	}
+
+	public bringToTop(dWindow: ManagedWindow) {
+		if (dWindow.alwaysOnTop) {
+			dWindow.zIndex = (this.highestOccupiedAlwaysOnTopZIndex ?? WindowService.TOP_Z_INDEX) + 1;
+			return;
+		}
+
+		let newIndex = this.highestOccupiedZIndex ?? WindowService.BOTTOM_Z_INDEX;
+		if (newIndex >= WindowService.TOP_Z_INDEX)
+			this.moveWindowsBetweenZIndexes(WindowService.TOP_Z_INDEX, WindowService.TOP_Z_INDEX - 1, [dWindow]);
+		else ++newIndex;
+
+		dWindow.zIndex = newIndex;
 	}
 
 	public createWindow<P extends object = Record<string, unknown>>(
@@ -389,7 +461,6 @@ export class WindowService {
 		if (options.resizeable != null) dWindow.resizeable = options.resizeable;
 		if (options.draggable != null) dWindow.draggable = options.draggable;
 		if (options.alwaysOnTop != null) dWindow.alwaysOnTop = options.alwaysOnTop;
-		if (options.focused != null) dWindow.focused = options.focused;
 		if (options.minimized != null) dWindow.minimized = options.minimized;
 		if (options.maximized != null) dWindow.maximized = options.maximized;
 		if (options.backdropVisible != null) dWindow.backdropVisible = options.backdropVisible;
@@ -403,9 +474,9 @@ export class WindowService {
 		if (options.buttons) dWindow.buttons = options.buttons;
 		if (options.parent != null) dWindow.setParent(options.parent);
 		if (options.children?.length) dWindow.addChildren(options.children);
-		dWindow.layout = options.layout ? options.layout : this.generateDefaultWindowLayout(dWindow);
+		dWindow.layout = options.layout ? options.layout : this.buildDefaultWindowLayout(dWindow);
 
-		this.registerWindow(dWindow);
+		this.registerWindow(dWindow, options.focused);
 		return dWindow;
 	}
 
@@ -415,10 +486,10 @@ export class WindowService {
 		return dWindow;
 	}
 
-	private registerWindow(dWindow: ManagedWindow) {
+	private registerWindow(dWindow: ManagedWindow, focused = true) {
 		if (this.#disposed)
 			throw new Error('Failed to register window: cannot perform any action with a disposed WindowService');
-		if (this.#windows.size >= WindowService.MAX_WINDOWS)
+		if (this.#windowsById.size >= WindowService.MAX_WINDOWS)
 			throw new Error(`Failed to register window: maximum number of windows is ${WindowService.MAX_WINDOWS}`);
 		if (dWindow.tag !== undefined && this.#windowsByTag.has(dWindow.tag))
 			throw new Error(
@@ -426,12 +497,11 @@ export class WindowService {
 			);
 
 		dWindow.captureInitialGeometry();
-		if (dWindow.focused) this.focusWindow(dWindow);
-		if (dWindow.alwaysOnTop) this.#windowsOnTop.add(dWindow.id);
-		this.setWindowsMap(dWindow);
+		if (focused) this.focusWindow(dWindow);
+		this.addWindowToMaps(dWindow);
 	}
 
-	private generateDefaultWindowLayout(dWindow: ManagedWindow) {
+	private buildDefaultWindowLayout(dWindow: ManagedWindow) {
 		return new WindowLayoutBuilder()
 			.withMaximizeButton(dWindow.maximizable)
 			.withMinimizeButton(dWindow.minimizable)
@@ -439,53 +509,51 @@ export class WindowService {
 			.build();
 	}
 
-	private setWindowsMap(dWindow: ManagedWindow) {
-		this.#windows.set(dWindow.id, dWindow);
+	// TODO?: Could be optimized by adding a bulk change event
+	private moveWindowsBetweenZIndexes(
+		sourceIndex: number,
+		destinationIndex: number,
+		ignoredWindows: ManagedWindow[] = []
+	) {
+		if (sourceIndex === destinationIndex) return;
+
+		const windows = (this.#windowsByZIndex.get(sourceIndex) ?? []).filter((w) => !ignoredWindows.includes(w));
+		for (const w of windows) w.zIndex = destinationIndex;
+	}
+
+	private addWindowToMaps(dWindow: ManagedWindow) {
+		this.#windowsById.set(dWindow.id, dWindow);
 		if (dWindow.tag !== undefined) this.#windowsByTag.set(dWindow.tag, dWindow);
+		if (!this.isFocused(dWindow)) this.addWindowToZMap(dWindow);
+
 		this.publishWindowMembership();
 	}
 
-	private removeWindowsMap(dWindow: ManagedWindow) {
-		if (this.#windows.get(dWindow.id) !== dWindow) return;
-		this.#windows.delete(dWindow.id);
+	private removeWindowFromMaps(dWindow: ManagedWindow) {
+		this.#windowsById.delete(dWindow.id);
 		if (dWindow.tag !== undefined && this.#windowsByTag.get(dWindow.tag) === dWindow)
 			this.#windowsByTag.delete(dWindow.tag);
+		this.removeWindowFromZMap(dWindow);
+
 		this.publishWindowMembership();
+	}
+
+	private addWindowToZMap(dWindow: ManagedWindow) {
+		this.#windowsByZIndex.set(dWindow.zIndex, [...(this.#windowsByZIndex.get(dWindow.zIndex) ?? []), dWindow]);
+	}
+	private removeWindowFromZMap(dWindow: ManagedWindow) {
+		this.#windowsByZIndex.set(
+			dWindow.zIndex,
+			(this.#windowsByZIndex.get(dWindow.zIndex) ?? []).filter((w) => w !== dWindow)
+		);
 	}
 
 	private publishWindowMembership() {
-		this.#windowsStore.set(Object.freeze([...this.#windows.values()]));
-	}
-
-	public dispose() {
-		if (this.#disposed) return;
-
-		this.#disposed = true;
-		this.#unsubscribeClose();
-		this.cancelPendingDragUpdate();
-		if (this.#editingWindow) this.#editingWindow.dWindow.setEditMode(null);
-		this.#editingWindow = null;
-
-		//TODO?: close & remove all windows
-	}
-
-	private setFocusedWindowZIndex(dWindow: ManagedWindow) {
-		// TODO
-		// if (dWindow.alwaysOnTop) {
-		// for(const i of this.#windowsOnTop) {
-		//   const tWindow = this.#windows.get(i);
-		//   const newZIndex = tWindow!.zIndex - 1;
-		//   this.#windowsByZIndex.get(newZIndex);
-		// if true then recursion... TODO move down 1 z-index method
-		// }
-		// }
-
-		const zIndex = dWindow.alwaysOnTop ? WindowService.TOP_Z_INDEX + 1 : this.topZIndex + 1;
-		dWindow.zIndex = zIndex;
-		this.#windowsByZIndex.set(zIndex, dWindow.id);
+		this.#windowsStore.set(Object.freeze([...this.#windowsById.values()]));
 	}
 
 	private determineNewWindowId() {
+		if (this.#disposed) return 0;
 		return this.#windowIdSequence++;
 	}
 }
