@@ -540,10 +540,12 @@ export class WindowService {
 			throw new Error('Failed to register window: cannot perform any action with a disposed WindowService');
 		if (this.#windowsById.size >= WindowService.MAX_WINDOWS)
 			throw new Error(`Failed to register window: maximum number of windows is ${WindowService.MAX_WINDOWS}`);
-		if (dWindow.tag !== undefined && this.#windowsByTag.has(dWindow.tag))
+		if (dWindow.tag !== undefined && this.#windowsByTag.has(dWindow.tag)) {
+			this.focusWindow(this.#windowsByTag.get(dWindow.tag) as ManagedWindow);
 			throw new Error(
-				`Failed to register window: tag "${dWindow.tag}" is already in use - this is most probably intended behavior`
+				`Failed to register window: tag "${dWindow.tag}" is already in use - this is most probably intended behavior, focusing the existing window instead`
 			);
+		}
 
 		this.#windowsById.set(dWindow.id, dWindow); // workaround for focused window z-index shenanigans
 		dWindow.captureInitialGeometry();

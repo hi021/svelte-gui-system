@@ -18,7 +18,6 @@ export type WindowEditMode = 'moving' | 'resizing' | null;
 export type ContentWrapperTransition = (node: Element, params: { duration: number }) => ReturnType<typeof slide>;
 
 export class DisplayWindow<P extends object = Record<string, unknown>> {
-	// TODO: focus window with existing tag on creation
 	public objectClass = 'NONE';
 	public readonly tag?: string;
 	public title = $state('');
