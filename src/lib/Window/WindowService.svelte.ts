@@ -323,6 +323,19 @@ export class WindowService {
 		return true;
 	}
 
+	public closeAllWindows() {
+		this.cancelPendingDragUpdate();
+		if (this.#editingWindow) this.#editingWindow.dWindow.setEditMode(null);
+		this.#editingWindow = null;
+		this.#focusedWindow = null;
+
+		for (const dWindow of this.#windowsById.values()) dWindow.close();
+		this.#windowsById.clear();
+		this.#windowsByTag.clear();
+		this.#windowsByZIndex.clear();
+		this.publishWindowMembership();
+	}
+
 	public handleMinimize(_: Event, dWindow: ManagedWindow) {
 		this.toggleMinimizeWindow(dWindow);
 	}
@@ -459,11 +472,7 @@ export class WindowService {
 		this.#unsubscribeClose();
 		this.#unsubscribeAlwaysOnTop();
 		this.#unsubscribeZIndex();
-		this.cancelPendingDragUpdate();
-		if (this.#editingWindow) this.#editingWindow.dWindow.setEditMode(null);
-		this.#editingWindow = null;
-
-		//TODO?: close & remove all windows
+		this.closeAllWindows();
 	}
 
 	public bringToTop(dWindow: ManagedWindow) {
