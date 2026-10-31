@@ -115,12 +115,12 @@
 		data-window-tag={dWindow.tag}
 		data-window-state={dWindow.windowState}
 		style="--z-index: {dWindow.zIndex}"
-		transition:fade|global={{ duration: 120 }}>
+		transition:fade|global={{ duration: 120 * dWindow.transitionDurationMultiplier }}>
 	</div>
 {/if}
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <div
-	transition:scale={{ duration: 150 }}
+	transition:scale={{ duration: 150 * dWindow.transitionDurationMultiplier }}
 	bind:this={windowElement}
 	use:Util.trapFocus
 	class="display-window-container unselectable"
@@ -137,6 +137,7 @@
 	role="dialog">
 	{#if dWindow.layout.fullTitleBar}
 		<div class="display-window-titlebar" onmousedown={beginPendingMove} ondblclick={onmaximize} role="contentinfo">
+			<!-- TODO: add titlebar icon -->
 			<span class="display-window-title">{dWindow.title}</span>
 			{#if dWindow.layout.titleBarButtons}
 				<span
@@ -179,7 +180,9 @@
 	<div
 		class="display-window-content-wrapper scrollbar-dark"
 		style={dWindow.contentContainerCss}
-		transition:dWindow.contentWrapperTransition|global={{ duration: 150 }}>
+		transition:dWindow.contentWrapperTransition|global={{
+			duration: 150 * dWindow.transitionDurationMultiplier
+		}}>
 		<div class="display-window-content">
 			{@render dWindow.content(dWindow.props)}
 		</div>

@@ -19,10 +19,10 @@ export type ContentWrapperTransition = (node: Element, params: { duration: numbe
 
 export class DisplayWindow<P extends object = Record<string, unknown>> {
 	// TODO: focus window with existing tag on creation
-	// TODO: reduced motion (disable animations)
 	public objectClass = 'NONE';
 	public readonly tag?: string;
 	public title = $state('');
+	public transitionDurationMultiplier = $state(1);
 	public layout = $state(new WindowLayout());
 	public minimizable = $state(true);
 	public maximizable = $state(true);

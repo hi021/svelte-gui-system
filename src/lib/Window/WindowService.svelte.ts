@@ -39,6 +39,7 @@ export type CreateWindowParams<P extends object = Record<string, unknown>> = {
 	minimized?: boolean;
 	maximized?: boolean;
 	backdropVisible?: boolean;
+	transitionDurationMultiplier?: number;
 	customWindowContainerCss?: string;
 	customContentContainerCss?: string;
 	position?: Vec2;
@@ -352,6 +353,11 @@ export class WindowService {
 		dWindow.minimized = !dWindow.minimized;
 	}
 
+	public setAllWindowsReducedMotion(reducedMotion: boolean) {
+		const multiplier = reducedMotion ? 0 : 1;
+		for (const dWindow of this.#windowsById.values()) dWindow.transitionDurationMultiplier = multiplier;
+	}
+
 	public handleDragStart(e: MouseEvent, dWindow: ManagedWindow, mode: WindowEditMode) {
 		// TODO: handle anchors after split to anchor X & Y
 		if (mode === 'moving')
@@ -505,6 +511,8 @@ export class WindowService {
 		if (options.minimized != null) dWindow.minimized = options.minimized;
 		if (options.maximized != null) dWindow.maximized = options.maximized;
 		if (options.backdropVisible != null) dWindow.backdropVisible = options.backdropVisible;
+		if (options.transitionDurationMultiplier != null)
+			dWindow.transitionDurationMultiplier = options.transitionDurationMultiplier;
 		if (options.customWindowContainerCss) dWindow.customWindowContainerCss = options.customWindowContainerCss;
 		if (options.customContentContainerCss) dWindow.customContentContainerCss = options.customContentContainerCss;
 		if (options.props != null) dWindow.props = options.props;
