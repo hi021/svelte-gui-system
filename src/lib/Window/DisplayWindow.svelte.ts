@@ -1,5 +1,8 @@
 import type { Snippet } from 'svelte';
 import { fly, slide } from 'svelte/transition';
+import { EventService } from '../Event/EventService';
+import { WindowAlwaysOnTopChangeEvent } from '../Event/WindowAlwaysOnTopChangeEvent';
+import { WindowZIndexChangeEvent } from '../Event/WindowZIndexChangeEvent';
 import { PredicateMode } from '../Util/PredicateMode';
 import Util from '../Util/Util';
 import { Vec2 } from '../Util/Vec2';
@@ -331,8 +334,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public set alwaysOnTop(alwaysOnTop: boolean) {
 		if (this.#alwaysOnTop === alwaysOnTop) return;
 		this.#alwaysOnTop = alwaysOnTop;
-
-		// TODO NOW send event and handle by bringing to top
+		EventService.dispatchEvent(new WindowAlwaysOnTopChangeEvent(this, alwaysOnTop));
 	}
 
 	public get zIndex() {
@@ -356,8 +358,10 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 			);
 
 		if (this.#zIndex === zIndex) return;
-		// TODO NOW event and handle by setting z index map
+
+		const oldZIndex = this.#zIndex;
 		this.#zIndex = zIndex;
+		EventService.dispatchEvent(new WindowZIndexChangeEvent(this, oldZIndex, zIndex));
 	}
 
 	public get buttons(): readonly WindowButton[] {

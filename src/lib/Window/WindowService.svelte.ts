@@ -66,6 +66,8 @@ export class WindowService {
 	#windowIdSequence = 1;
 	#disposed = false;
 	readonly #unsubscribeClose: () => void;
+	readonly #unsubscribeAlwaysOnTop: () => void;
+	readonly #unsubscribeZIndex: () => void;
 
 	public static isNodeDisplayWindow(node: EventTarget | HTMLElement) {
 		return (
@@ -77,10 +79,25 @@ export class WindowService {
 	}
 
 	public constructor(container?: HTMLElement) {
+		// TODO?: some kind of event ownership token so that every window service instance doesnt need to validate window identity? probably fine for my intended target of 3 simultaneous instances idk
 		this.#unsubscribeClose = EventService.windowCloseEvent.subscribe(
 			(event) =>
-				event && [...this.#windowsById.values()].includes(event.sourceWindow) && this.closeWindow(event.sourceWindow)
+				event &&
+				this.#windowsById.get(event.sourceWindow.id) === event.sourceWindow &&
+				this.closeWindow(event.sourceWindow)
 		);
+		this.#unsubscribeAlwaysOnTop = EventService.windowAlwaysOnTopChangeEvent.subscribe(
+			(event) =>
+				event &&
+				this.#windowsById.get(event.sourceWindow.id) === event.sourceWindow &&
+				this.bringToTop(event.sourceWindow)
+		);
+		this.#unsubscribeZIndex = EventService.windowZIndexChangeEvent.subscribe((event) => {
+			if (!event || this.#windowsById.get(event.sourceWindow.id) !== event.sourceWindow) return;
+
+			this.removeWindowFromZMap(event.sourceWindow, event.oldZIndex);
+			this.addWindowToZMap(event.sourceWindow, event.newZIndex);
+		});
 
 		if (container) this.initialize(container);
 	}
@@ -275,6 +292,22 @@ export class WindowService {
 		console.log(debugString);
 	}
 
+	public debugAllWindowMaps() {
+		console.log('Windows by id');
+		console.table([...this.#windowsById].map(([id, dWindow]) => ({ id, window: dWindow.toString() })));
+
+		console.log('Windows by tag');
+		console.table([...this.#windowsByTag].map(([tag, dWindow]) => ({ tag, window: dWindow.toString() })));
+
+		console.log('Windows by z-index');
+		console.table(
+			[...this.#windowsByZIndex].map(([zIndex, windows]) => ({
+				zIndex,
+				windows: windows.map((dWindow) => dWindow.toString())
+			}))
+		);
+	}
+
 	public handleClose(_: Event, dWindow: ManagedWindow) {
 		return this.closeWindow(dWindow);
 	}
@@ -427,6 +460,8 @@ export class WindowService {
 
 		this.#disposed = true;
 		this.#unsubscribeClose();
+		this.#unsubscribeAlwaysOnTop();
+		this.#unsubscribeZIndex();
 		this.cancelPendingDragUpdate();
 		if (this.#editingWindow) this.#editingWindow.dWindow.setEditMode(null);
 		this.#editingWindow = null;
@@ -496,8 +531,10 @@ export class WindowService {
 				`Failed to register window: tag "${dWindow.tag}" is already in use - this is most probably intended behavior`
 			);
 
+		this.#windowsById.set(dWindow.id, dWindow); // workaround for focused window z-index shenanigans
 		dWindow.captureInitialGeometry();
 		if (focused) this.focusWindow(dWindow);
+		else if (dWindow.alwaysOnTop) this.bringToTop(dWindow);
 		this.addWindowToMaps(dWindow);
 	}
 
@@ -522,7 +559,6 @@ export class WindowService {
 	}
 
 	private addWindowToMaps(dWindow: ManagedWindow) {
-		this.#windowsById.set(dWindow.id, dWindow);
 		if (dWindow.tag !== undefined) this.#windowsByTag.set(dWindow.tag, dWindow);
 		if (!this.isFocused(dWindow)) this.addWindowToZMap(dWindow);
 
@@ -538,13 +574,13 @@ export class WindowService {
 		this.publishWindowMembership();
 	}
 
-	private addWindowToZMap(dWindow: ManagedWindow) {
-		this.#windowsByZIndex.set(dWindow.zIndex, [...(this.#windowsByZIndex.get(dWindow.zIndex) ?? []), dWindow]);
+	private addWindowToZMap(dWindow: ManagedWindow, zIndex = dWindow.zIndex) {
+		this.#windowsByZIndex.set(zIndex, [...(this.#windowsByZIndex.get(zIndex) ?? []), dWindow]);
 	}
-	private removeWindowFromZMap(dWindow: ManagedWindow) {
+	private removeWindowFromZMap(dWindow: ManagedWindow, zIndex = dWindow.zIndex) {
 		this.#windowsByZIndex.set(
-			dWindow.zIndex,
-			(this.#windowsByZIndex.get(dWindow.zIndex) ?? []).filter((w) => w !== dWindow)
+			zIndex,
+			(this.#windowsByZIndex.get(zIndex) ?? []).filter((w) => w !== dWindow)
 		);
 	}
 

@@ -1,15 +1,25 @@
 import { readonly, writable } from 'svelte/store';
+import { ApplicationEvent } from './ApplicationEvent';
 import { AudioPlayEvent } from './AudioPlayEvent';
 import { AudioStopEvent } from './AudioStopEvent';
-import { ApplicationEvent } from './ApplicationEvent';
+import { WindowAlwaysOnTopChangeEvent } from './WindowAlwaysOnTopChangeEvent';
 import { WindowCloseEvent } from './WindowCloseEvent';
+import { WindowZIndexChangeEvent } from './WindowZIndexChangeEvent';
 
 export class EventService {
 	static #windowCloseEvent = writable<WindowCloseEvent>();
+	static #windowAlwaysOnTopChangeEvent = writable<WindowAlwaysOnTopChangeEvent>();
+	static #windowZIndexChangeEvent = writable<WindowZIndexChangeEvent>();
 	static #audioPlayEvent = writable<AudioPlayEvent>();
 	static #audioStopEvent = writable<AudioStopEvent>();
 	public static get windowCloseEvent() {
 		return readonly(this.#windowCloseEvent);
+	}
+	public static get windowAlwaysOnTopChangeEvent() {
+		return readonly(this.#windowAlwaysOnTopChangeEvent);
+	}
+	public static get windowZIndexChangeEvent() {
+		return readonly(this.#windowZIndexChangeEvent);
 	}
 	public static get audioPlayEvent() {
 		return readonly(this.#audioPlayEvent);
@@ -23,6 +33,12 @@ export class EventService {
 
 		if (event instanceof WindowCloseEvent) {
 			return this.#windowCloseEvent.set(event);
+		}
+		if (event instanceof WindowAlwaysOnTopChangeEvent) {
+			return this.#windowAlwaysOnTopChangeEvent.set(event);
+		}
+		if (event instanceof WindowZIndexChangeEvent) {
+			return this.#windowZIndexChangeEvent.set(event);
 		}
 		if (event instanceof AudioPlayEvent) {
 			return this.#audioPlayEvent.set(event);
