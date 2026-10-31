@@ -1,52 +1,42 @@
-import { readonly, writable } from 'svelte/store';
 import { ApplicationEvent } from './ApplicationEvent';
-import { AudioPlayEvent } from './AudioPlayEvent';
-import { AudioStopEvent } from './AudioStopEvent';
-import { WindowAlwaysOnTopChangeEvent } from './WindowAlwaysOnTopChangeEvent';
-import { WindowCloseEvent } from './WindowCloseEvent';
-import { WindowZIndexChangeEvent } from './WindowZIndexChangeEvent';
+
+type EventConstructor<T extends ApplicationEvent = ApplicationEvent> = abstract new (...args: any[]) => T;
+type EventListener<T extends ApplicationEvent> = (event: T) => void;
+type ListenerRegistration = { listener: EventListener<ApplicationEvent> };
 
 export class EventService {
-	static #windowCloseEvent = writable<WindowCloseEvent>();
-	static #windowAlwaysOnTopChangeEvent = writable<WindowAlwaysOnTopChangeEvent>();
-	static #windowZIndexChangeEvent = writable<WindowZIndexChangeEvent>();
-	static #audioPlayEvent = writable<AudioPlayEvent>();
-	static #audioStopEvent = writable<AudioStopEvent>();
-	public static get windowCloseEvent() {
-		return readonly(this.#windowCloseEvent);
-	}
-	public static get windowAlwaysOnTopChangeEvent() {
-		return readonly(this.#windowAlwaysOnTopChangeEvent);
-	}
-	public static get windowZIndexChangeEvent() {
-		return readonly(this.#windowZIndexChangeEvent);
-	}
-	public static get audioPlayEvent() {
-		return readonly(this.#audioPlayEvent);
-	}
-	public static get audioStopEvent() {
-		return readonly(this.#audioStopEvent);
+	static #listeners = new Map<EventConstructor, Set<ListenerRegistration>>();
+
+	// Returns an unsubscriber
+	public static on<T extends ApplicationEvent>(eventClass: EventConstructor<T>, listener: EventListener<T>) {
+		let listeners = this.#listeners.get(eventClass);
+		if (!listeners) {
+			listeners = new Set();
+			this.#listeners.set(eventClass, listeners);
+		}
+
+		const registration: ListenerRegistration = { listener: listener as EventListener<ApplicationEvent> };
+		listeners.add(registration);
+		let active = true;
+
+		return () => {
+			if (!active) return;
+
+			active = false;
+			listeners.delete(registration);
+			if (listeners.size === 0 && this.#listeners.get(eventClass) === listeners) this.#listeners.delete(eventClass);
+		};
 	}
 
 	public static dispatchEvent(event: ApplicationEvent) {
 		console.debug(`Received application event: ${event}`);
 
-		if (event instanceof WindowCloseEvent) {
-			return this.#windowCloseEvent.set(event);
-		}
-		if (event instanceof WindowAlwaysOnTopChangeEvent) {
-			return this.#windowAlwaysOnTopChangeEvent.set(event);
-		}
-		if (event instanceof WindowZIndexChangeEvent) {
-			return this.#windowZIndexChangeEvent.set(event);
-		}
-		if (event instanceof AudioPlayEvent) {
-			return this.#audioPlayEvent.set(event);
-		}
-		if (event instanceof AudioStopEvent) {
-			return this.#audioStopEvent.set(event);
-		}
+		const matchingRegistrations = [...this.#listeners]
+			.filter(([eventClass]) => event instanceof eventClass)
+			.flatMap(([, registrations]) => [...registrations].map((registration) => [registrations, registration] as const));
 
-		console.warn(`Attempted to create application event without dispatcher: ${event}`);
+		for (const [registrations, registration] of matchingRegistrations) {
+			if (registrations.has(registration)) registration.listener(event);
+		}
 	}
 }

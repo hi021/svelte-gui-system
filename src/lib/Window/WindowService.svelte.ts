@@ -1,6 +1,9 @@
 import type { Snippet } from 'svelte';
 import { readonly, writable, type Readable } from 'svelte/store';
 import { EventService } from '../Event/EventService';
+import { WindowAlwaysOnTopChangeEvent } from '../Event/WindowAlwaysOnTopChangeEvent';
+import { WindowCloseEvent } from '../Event/WindowCloseEvent';
+import { WindowZIndexChangeEvent } from '../Event/WindowZIndexChangeEvent';
 import { PredicateMode } from '../Util/PredicateMode';
 import { Quadrant } from '../Util/Quadrant';
 import { Vec2 } from '../Util/Vec2';
@@ -80,20 +83,14 @@ export class WindowService {
 
 	public constructor(container?: HTMLElement) {
 		// TODO?: some kind of event ownership token so that every window service instance doesnt need to validate window identity? probably fine for my intended target of 3 simultaneous instances idk
-		this.#unsubscribeClose = EventService.windowCloseEvent.subscribe(
-			(event) =>
-				event &&
-				this.#windowsById.get(event.sourceWindow.id) === event.sourceWindow &&
-				this.closeWindow(event.sourceWindow)
-		);
-		this.#unsubscribeAlwaysOnTop = EventService.windowAlwaysOnTopChangeEvent.subscribe(
-			(event) =>
-				event &&
-				this.#windowsById.get(event.sourceWindow.id) === event.sourceWindow &&
-				this.bringToTop(event.sourceWindow)
-		);
-		this.#unsubscribeZIndex = EventService.windowZIndexChangeEvent.subscribe((event) => {
-			if (!event || this.#windowsById.get(event.sourceWindow.id) !== event.sourceWindow) return;
+		this.#unsubscribeClose = EventService.on(WindowCloseEvent, (event) => {
+			if (this.#windowsById.get(event.sourceWindow.id) === event.sourceWindow) this.closeWindow(event.sourceWindow);
+		});
+		this.#unsubscribeAlwaysOnTop = EventService.on(WindowAlwaysOnTopChangeEvent, (event) => {
+			if (this.#windowsById.get(event.sourceWindow.id) === event.sourceWindow) this.bringToTop(event.sourceWindow);
+		});
+		this.#unsubscribeZIndex = EventService.on(WindowZIndexChangeEvent, (event) => {
+			if (this.#windowsById.get(event.sourceWindow.id) !== event.sourceWindow) return;
 
 			this.removeWindowFromZMap(event.sourceWindow, event.oldZIndex);
 			this.addWindowToZMap(event.sourceWindow, event.newZIndex);
