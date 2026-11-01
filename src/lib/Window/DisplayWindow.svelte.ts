@@ -116,15 +116,12 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	}
 	public set size(size: Vec2) {
 		if (!(size instanceof Vec2)) throw new TypeError('Invalid window property value provided - size must be a Vec2');
+
+		size = this.getClampedSize(new Vec2(size.x, size.y));
+		if (size.equals(this.#size)) return;
+
 		this.#hasExplicitSize = true;
-
-		const ownedSize = new Vec2(size.x, size.y);
-		if (ownedSize.x < this.#minSize.x) ownedSize.x = this.#minSize.x;
-		else if (this.#maxSize && ownedSize.x > this.#maxSize.x) ownedSize.x = this.#maxSize.x;
-		if (ownedSize.y < this.#minSize.y) ownedSize.y = this.#minSize.y;
-		else if (this.#maxSize && ownedSize.y > this.#maxSize.y) ownedSize.y = this.#maxSize.y;
-
-		this.#size = ownedSize;
+		this.#size = size;
 	}
 
 	public get hasExplicitSize() {
@@ -187,6 +184,15 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		this.size = this.initialSize as Vec2;
 	}
 
+	private getClampedSize(size = this.#size) {
+		if (size.x < this.#minSize.x) size.x = this.#minSize.x;
+		else if (this.#maxSize && size.x > this.#maxSize.x) size.x = this.#maxSize.x;
+		if (size.y < this.#minSize.y) size.y = this.#minSize.y;
+		else if (this.#maxSize && size.y > this.#maxSize.y) size.y = this.#maxSize.y;
+
+		return size;
+	}
+
 	public get minSize() {
 		return new Vec2(this.#minSize.x, this.#minSize.y);
 	}
@@ -200,13 +206,14 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 			throw new Error('Invalid window property value provided - min size must be less than max size');
 
 		this.#minSize = new Vec2(size.x, size.y);
+		this.size = this.size; // re-clamp size to new min size if necessary
 	}
 	public setMinSize(w?: number, h?: number) {
 		this.minSize = new Vec2(w ?? this.#minSize.x, h ?? this.#minSize.y);
 	}
 
 	public get maxSize() {
-		return this.#maxSize ? new Vec2(this.#maxSize.x, this.#maxSize.y) : undefined;
+		return this.#maxSize === undefined ? undefined : new Vec2(this.#maxSize.x, this.#maxSize.y);
 	}
 	public set maxSize(size: Vec2 | null | undefined) {
 		if (size == null) {
@@ -224,6 +231,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 			throw new Error('Invalid window property value provided - max size must be greater than min size');
 
 		this.#maxSize = new Vec2(size.x, size.y);
+		this.size = this.size; // re-clamp size to new max size if necessary
 	}
 	public setMaxSize(w?: number, h?: number) {
 		const width = w ?? this.#maxSize?.x;
@@ -233,8 +241,6 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 			this.#maxSize = undefined;
 			return;
 		}
-		if (width < this.#minSize.x || height < this.#minSize.y)
-			throw new Error('Invalid window property value provided - max size must be greater than min size');
 
 		this.maxSize = new Vec2(width, height);
 	}
@@ -367,6 +373,7 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		return this.#buttons;
 	}
 	public set buttons(buttons: WindowButton[]) {
+		this.#buttons = [];
 		for (const button of buttons ?? []) this.addButton(button);
 	}
 
@@ -389,14 +396,16 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public get parent() {
 		return this.#parent;
 	}
-	public setParent(dWindow?: DisplayWindow<any>) {
-		if (!dWindow) return this.removeParent();
-		if (this.#parent === dWindow) return;
-		if (this.#children.includes(dWindow)) return console.warn(`Attempted to set existing child as parent for ${this}`);
-		if (!WindowService.windowExists(dWindow)) return console.warn(`Attempted to set parent for ${this}`);
+	public setParent(parentWindow?: DisplayWindow<any>) {
+		if (!parentWindow) return this.removeParent();
+		if (this.#parent === parentWindow) return;
+		if (this.#children.includes(parentWindow))
+			return console.warn(`Attempted to set existing child as parent for ${this}`);
+		if (!WindowService.windowExists(parentWindow))
+			return console.warn(`Attempted to set parent for disposed window ${this}`);
 
-		dWindow.#children.push(this);
-		this.#parent = dWindow;
+		parentWindow.#children.push(this);
+		this.#parent = parentWindow;
 	}
 	public removeParent() {
 		if (!this.parent) return console.warn(`Attempted to remove inexistent parent from ${this}`);
@@ -474,11 +483,6 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 		return `${overflow}
     --padding: ${this.layout.padding}px;
     ${this.customContentContainerCss}`;
-	}
-
-	public setButtons(buttons: WindowButton[]) {
-		this.#buttons = [];
-		for (const button of buttons) this.addButton(button);
 	}
 
 	public addButton(button: WindowButton) {

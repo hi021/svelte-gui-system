@@ -15,7 +15,7 @@ export class Audio {
 
 	public constructor(id: number, path: string, tag?: string, lazy = true) {
 		this.#id = id;
-		this.path = path;
+		this.path = path; //TODO?: validate if local
 		this.tag = tag;
 		this.#lazy = lazy;
 

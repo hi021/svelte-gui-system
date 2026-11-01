@@ -27,6 +27,6 @@ export class NotificationWindow extends DisplayWindow<{ text: string }> {
 		this.props = { text };
 		if (title) this.title = title;
 
-		this.setButtons(ButtonHelper.buttonsFromConfiguration(buttonConfiguration, buttonActions));
+		this.buttons = ButtonHelper.buttonsFromConfiguration(buttonConfiguration, buttonActions);
 	}
 }

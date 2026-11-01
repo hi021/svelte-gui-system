@@ -547,7 +547,7 @@ export class WindowService {
 			);
 		}
 
-		this.#windowsById.set(dWindow.id, dWindow); // workaround for focused window z-index shenanigans
+		this.#windowsById.set(dWindow.id, dWindow); // calling before addWindowToMaps() as workaround for focused window z-index shenanigans
 		dWindow.captureInitialGeometry();
 		if (focused) this.focusWindow(dWindow);
 		else if (dWindow.alwaysOnTop) this.bringToTop(dWindow);
@@ -576,7 +576,8 @@ export class WindowService {
 
 	private addWindowToMaps(dWindow: ManagedWindow) {
 		if (dWindow.tag !== undefined) this.#windowsByTag.set(dWindow.tag, dWindow);
-		if (!this.isFocused(dWindow)) this.addWindowToZMap(dWindow);
+		if (!this.isFocused(dWindow) && !dWindow.alwaysOnTop /* handled in registerWindow() by bringing to top */)
+			this.addWindowToZMap(dWindow);
 
 		this.publishWindowMembership();
 	}

@@ -7,6 +7,10 @@ export class Vec2 {
 		this.y = y;
 	}
 
+	public equals(other: Vec2) {
+		return this.x === other.x && this.y === other.y;
+	}
+
 	public round() {
 		return new Vec2(Math.round(this.x), Math.round(this.y));
 	}
