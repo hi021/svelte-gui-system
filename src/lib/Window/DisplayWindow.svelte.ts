@@ -399,11 +399,13 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public setParent(parentWindow?: DisplayWindow<any>) {
 		if (!parentWindow) return this.removeParent();
 		if (this.#parent === parentWindow) return;
+		if (this === parentWindow) return console.warn(`Attempted to set window as its own parent for ${this}`);
 		if (this.#children.includes(parentWindow))
 			return console.warn(`Attempted to set existing child as parent for ${this}`);
 		if (!WindowService.windowExists(parentWindow))
 			return console.warn(`Attempted to set parent for disposed window ${this}`);
 
+		if (this.#parent) this.removeParent();
 		parentWindow.#children.push(this);
 		this.#parent = parentWindow;
 	}
@@ -416,10 +418,10 @@ export class DisplayWindow<P extends object = Record<string, unknown>> {
 	public get children(): readonly DisplayWindow<any>[] {
 		return this.#children;
 	}
-	public addChild(dWindow: DisplayWindow<any>) {
-		// TODO: Implement hierarchy membership updates
-		if (!WindowService.windowExists(dWindow))
+	public addChild(childWindow: DisplayWindow<any>) {
+		if (!WindowService.windowExists(childWindow))
 			return console.warn(`Attempted to add already orphaned window to ${this}`);
+		childWindow.setParent(this);
 	}
 	public addChildren(dWindows: DisplayWindow<any>[]) {
 		for (const dWindow of dWindows) this.addChild(dWindow);
