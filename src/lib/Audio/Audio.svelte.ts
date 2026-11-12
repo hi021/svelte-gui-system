@@ -1,28 +1,47 @@
-import { MediaState } from './MediaState';
+import Util from '../Util/Util';
 import { registerAudioAccess } from './AudioInternal';
+import { MediaState } from './MediaState';
 
 export class Audio {
 	public objectClass = 'NONE';
-	public path: string;
 	public tag: string | undefined = $state(undefined);
 	public looping = $state(false);
 	#element: HTMLAudioElement | undefined = $state(undefined);
 	#state = $state(MediaState.UNDEFINED);
+	#playbackSchedule: number | undefined;
 	#id: number;
+	#path = '';
 	#lazy: boolean;
 	#volume = $state(0.5);
 	#speed = $state(1);
 
 	public constructor(id: number, path: string, tag?: string, lazy = true) {
 		this.#id = id;
-		this.path = path; //TODO?: validate if local
 		this.tag = tag;
 		this.#lazy = lazy;
+		try {
+			this.path = path;
+		} catch {
+			this.#state = MediaState.ERROR;
+		}
 
 		registerAudioAccess(this, {
 			setElement: (element) => (this.#element = element),
 			setState: (state) => (this.#state = state)
 		});
+	}
+
+	public get path() {
+		return this.#path;
+	}
+	public set path(path: string) {
+		try {
+			Util.validateLocalUrl(path);
+			this.#path = path;
+		} catch (error) {
+			this.#state = MediaState.ERROR;
+			throw error;
+		}
 	}
 
 	public get id() {
@@ -68,18 +87,32 @@ export class Audio {
 	}
 
 	public play() {
+		if (this.#state === MediaState.ERROR) return;
+
 		if (this.#state === MediaState.UNDEFINED) {
-			this.#state = MediaState.READY;
-			setTimeout(() => this.play());
+			try {
+				this.#state = MediaState.READY;
+				this.#playbackSchedule = setTimeout(() => this.play());
+			} catch {
+				this.#state = MediaState.ERROR;
+			}
 			return;
 		}
 
 		if (!this.#element) return;
-		this.#element.play();
+		try {
+			void this.#element.play().catch(() => (this.#state = MediaState.ERROR));
+		} catch {
+			this.#state = MediaState.ERROR;
+		}
 		// TODO EVENT
 	}
 	public rewind() {
-		if (this.#element) this.#element.currentTime = 0;
+		try {
+			if (this.#element) this.#element.currentTime = 0;
+		} catch {
+			this.#state = MediaState.ERROR;
+		}
 	}
 	public replay() {
 		if (this.#state === MediaState.PLAYING) this.rewind();
@@ -87,12 +120,22 @@ export class Audio {
 	}
 	public pause() {
 		if (!this.#element) return;
-		this.#element.pause();
+		try {
+			this.#element.pause();
+		} catch {
+			this.#state = MediaState.ERROR;
+		}
 		// TODO EVENT
 	}
 	public stop() {
-		this.pause();
-		this.rewind();
+		try {
+			this.pause();
+			this.rewind();
+			clearTimeout(this.#playbackSchedule);
+			this.#playbackSchedule = undefined;
+		} catch {
+			this.#state = MediaState.ERROR;
+		}
 	}
 
 	public remove() {

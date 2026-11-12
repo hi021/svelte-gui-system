@@ -23,11 +23,11 @@
 	});
 
 	onMount(() => {
-		if (!audio.lazy) setAudioState(audio, MediaState.READY);
+		if (!audio.lazy && audio.state !== MediaState.ERROR) setAudioState(audio, MediaState.READY);
 	});
 </script>
 
-{#if audio.state !== MediaState.UNDEFINED}
+{#if audio.state !== MediaState.UNDEFINED && audio.state !== MediaState.ERROR}
 	<audio
 		data-audio-class={audio.objectClass}
 		data-audio-tag={audio.tag}
@@ -37,6 +37,7 @@
 		src={audio.path}
 		onplay={(e) => onplay(e, audio)}
 		onended={(e) => onended(e, audio)}
-		onpause={(e) => onpause(e, audio)}>
+		onpause={(e) => onpause(e, audio)}
+		onerror={() => setAudioState(audio, MediaState.ERROR)}>
 	</audio>
 {/if}

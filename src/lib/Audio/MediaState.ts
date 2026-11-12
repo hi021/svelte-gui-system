@@ -3,5 +3,6 @@ export enum MediaState {
 	READY,
 	PLAYING,
 	PAUSED,
-	ENDED
+	ENDED,
+	ERROR
 }
