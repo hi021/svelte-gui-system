@@ -1,3 +1,6 @@
+import { AudioPlayEvent } from '../Event/AudioPlayEvent';
+import { AudioStopEvent } from '../Event/AudioStopEvent';
+import { EventService } from '../Event/EventService';
 import Util from '../Util/Util';
 import { registerAudioAccess } from './AudioInternal';
 import { MediaState } from './MediaState';
@@ -105,7 +108,7 @@ export class Audio {
 		} catch {
 			this.#state = MediaState.ERROR;
 		}
-		// TODO EVENT
+		EventService.dispatchEvent(new AudioPlayEvent(this));
 	}
 	public rewind() {
 		try {
@@ -125,7 +128,7 @@ export class Audio {
 		} catch {
 			this.#state = MediaState.ERROR;
 		}
-		// TODO EVENT
+		EventService.dispatchEvent(new AudioStopEvent(this));
 	}
 	public stop() {
 		try {

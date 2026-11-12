@@ -1,4 +1,7 @@
 import { writable } from 'svelte/store';
+import { AudioPlayEvent } from '../Event/AudioPlayEvent';
+import { AudioStopEvent } from '../Event/AudioStopEvent';
+import { EventService } from '../Event/EventService';
 import type { MethodsOnly } from '../Util/Util';
 import { Audio } from './Audio.svelte';
 import { aliasAudioAccess } from './AudioInternal';
@@ -9,12 +12,26 @@ export class AudioService {
 	readonly #audioObjectsByTag = new Map<string, Audio>();
 	readonly #audioObjects = new Map<number, Audio>();
 	#audioObjectsStore = writable<Audio[]>([]);
-	//@ts-expect-error TODO EVENTS
 	#playingAudioObjects = new Array<Audio>();
 	#audioIdSequence = 1;
 
+	public constructor() {
+		EventService.on(AudioPlayEvent, (event) => {
+			if (this.#audioObjects.get(event.audioObject.id) !== event.audioObject) return;
+			if (!this.#playingAudioObjects.includes(event.audioObject)) this.#playingAudioObjects.push(event.audioObject);
+		});
+		EventService.on(AudioStopEvent, (event) => {
+			const index = this.#playingAudioObjects.indexOf(event.audioObject);
+			if (index !== -1) this.#playingAudioObjects.splice(index, 1);
+		});
+	}
+
 	public get audioObjects() {
 		return this.#audioObjectsStore;
+	}
+
+	public get playingAudioObjects() {
+		return this.#playingAudioObjects;
 	}
 
 	public registerAudioObject(path: string, tag?: string, lazy = true) {
@@ -85,6 +102,7 @@ export class AudioService {
 	public getById(id: number) {
 		return id ? this.#audioObjects.get(id) : undefined;
 	}
+	// TODO?: optimize lookup?
 	public getByPath(path: string) {
 		if (!path) return undefined;
 
@@ -112,13 +130,13 @@ export class AudioService {
 	}
 
 	public rewindAll() {
-		// TODO
+		this.actionOnAllAudioObjects('rewind');
 	}
 	public pauseAll() {
-		// TODO
+		this.actionOnAllAudioObjects('pause');
 	}
 	public stopAll() {
-		// TODO
+		this.actionOnAllAudioObjects('stop');
 	}
 
 	private audioActionByTag(tag: string, action: MethodsOnly<Audio>) {
@@ -127,8 +145,9 @@ export class AudioService {
 		audio[action]();
 	}
 
-	//@ts-expect-error TODO
-	private actionOnAllAudioObjects() {}
+	private actionOnAllAudioObjects(action: MethodsOnly<Audio>) {
+		for (const audio of this.#audioObjects.values()) audio[action]();
+	}
 
 	public debugAllObjects() {
 		let debugString = '';
