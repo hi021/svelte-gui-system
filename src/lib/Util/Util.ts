@@ -76,7 +76,7 @@ export default class Util {
 
 	public static onClickOutside(node: HTMLElement): Attachment {
 		function handleOutsideClick(e: MouseEvent) {
-			if (!e.composedPath().includes(e.target!)) node.dispatchEvent(new CustomEvent('outsideclick'));
+			if (!e.composedPath().includes(node)) node.dispatchEvent(new CustomEvent('outsideclick'));
 		}
 
 		window.addEventListener('click', handleOutsideClick);
