@@ -7,9 +7,9 @@
 	"types": "./dist/types/index.d.ts",
 	"exports": {
 		".": {
+			"types": "./dist/types/index.d.ts",
 			"import": "./dist/index.js",
-			"svelte": "./dist/index.js",
-			"types": "./dist/types/index.d.ts"
+			"svelte": "./dist/index.js"
 		},
 		"./styles.css": "./dist/styles.css"
 	},
@@ -33,6 +33,6 @@
 		"prettier-plugin-svelte": "^4.1.1",
 		"svelte": "^5.57.3",
 		"typescript": "~7.0.2",
-		"vite": "^8.3.7"
+		"vite": "^8.3.8"
 	}
 }
