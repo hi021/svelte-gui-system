@@ -1,6 +1,3 @@
-/// <reference path="./svelte-components.d.ts" preserve="true" />
-import '../styles.css';
-
 export { Audio } from './Audio/Audio.svelte';
 export { default as AudioComponent } from './Audio/AudioComponent.svelte';
 export { default as AudioComponentContainer } from './Audio/AudioComponentContainer.svelte';

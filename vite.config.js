@@ -6,7 +6,7 @@ export default defineConfig({
 	plugins: [svelte()],
 	build: {
 		lib: {
-			entry: resolve(import.meta.dirname, 'src/lib/index.ts'),
+			entry: resolve(import.meta.dirname, 'src/vite-entry.ts'),
 			formats: ['es'],
 			fileName: 'index',
 			cssFileName: 'styles'

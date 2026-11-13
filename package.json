@@ -18,9 +18,11 @@
 		"README.md"
 	],
 	"scripts": {
-		"build": "vite build && pnpm build:types && node scripts/finalize-types.js",
-		"build:types": "tsc -p tsconfig.json",
-		"check": "pnpm build:types",
+		"build": "vite build && pnpm build:types",
+		"build:types": "svelte-package --input src/lib --output dist/types --tsconfig ./tsconfig.package.json",
+		"check": "pnpm check:source && pnpm build:types && pnpm check:consumer",
+		"check:source": "svelte-check --tsconfig ./tsconfig.json",
+		"check:consumer": "tsc --noEmit -p tests/consumer/tsconfig.json",
 		"clean": "rm -rf dist",
 		"format": "prettier ./src --write"
 	},
@@ -29,10 +31,12 @@
 		"svelte": "^5.57.3"
 	},
 	"devDependencies": {
+		"@sveltejs/package": "^3.0.2",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"prettier-plugin-svelte": "^4.1.1",
 		"svelte": "^5.57.3",
-		"typescript": "~7.0.2",
+		"svelte-check": "^4.7.8",
+		"typescript": "^6.0.3",
 		"vite": "^8.3.8"
 	}
 }
