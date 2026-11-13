@@ -5,7 +5,7 @@ An extensible Svelte 5 library for programmatically creating dynamic GUIs with f
 
 ## install
 
-Build the library, then add the local package from a consuming project:
+Build the library, then add the local package from a consuming project (for now):
 
 ```sh
 pnpm build
@@ -13,9 +13,9 @@ cd ../consuming-project
 pnpm add ../svelte-gui-system
 ```
 
-## Svelte and TypeScript
+## usage
 
-Use the library from a Svelte 5 project with its default Svelte Vite setup. The package ships declarations generated from its Svelte components:
+Use the library from a Svelte 5 project with its default Svelte + Vite setup. The package ships declarations generated from its Svelte components:
 
 ```ts
 // vite.config.ts
@@ -25,14 +25,14 @@ import { defineConfig } from 'vite';
 export default defineConfig({ plugins: [svelte()] });
 ```
 
-You can set TypeScript (6.x for now) to use bundler resolution and lint using `svelte-check`:
+You can set up TypeScript (6.x for now) to use bundler resolution and lint using `svelte-check`:
 
 ```json
 {
-	"compilerOptions": {
-		"strict": true,
-		"moduleResolution": "bundler"
-	}
+  "compilerOptions": {
+    "strict": true,
+    "moduleResolution": "bundler"
+  }
 }
 ```
 
