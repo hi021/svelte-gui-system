@@ -3,6 +3,8 @@
 **very** WIP\
 An extensible Svelte 5 library for programmatically creating dynamic GUIs with floating windows, audio controls, events, and related UI utilities.
 
+![Quick and dirty GUI running on SGS](https://www.poggers.moe/cv_2026/svelte_gui.jpg)
+
 ## install
 
 Build the library, then add the local package from a consuming project (for now):
